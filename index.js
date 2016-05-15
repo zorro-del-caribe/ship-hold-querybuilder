@@ -1,10 +1,6 @@
-const select = require('./select');
-// const stampit = require('stampit');
-setInterval(function () {
-  const q = select()
-    .from('users')
-    .where('foo', 'bar')
-    .and('blah', 'whoot')
-    .or('age', '>', 50)
-    .build();
-}, 100);
+const condition = require('./builders/conditions');
+const select = require('./builders/select');
+
+module.exports = function () {
+  return {condition, select};
+};

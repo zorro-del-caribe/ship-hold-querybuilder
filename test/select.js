@@ -1,12 +1,11 @@
 const test = require('tape');
-const select = require('../select');
-const operators = require('../lib/opreators');
+const select = require('../builders/select');
 
 test('select given columns from a table', t=> {
-  const actual =
-    select('foo', 'bar')
+  const actual = select('foo', 'bar')
       .from('users')
       .build();
+
   const expected = 'SELECT "foo", "bar" FROM "users"';
   t.equal(actual, expected);
   t.end();
@@ -61,7 +60,7 @@ test('understand dot notation', t=> {
 test('where: use provided operator', t=> {
   const actual = select()
     .from('users')
-    .where('foo', operators.GREATER, 12)
+    .where('foo', '>', 12)
     .build();
   const expected = 'SELECT * FROM "users" WHERE "foo">\'12\'';
   t.equal(actual, expected);
@@ -78,25 +77,12 @@ test('where: use default operator', t=> {
   t.end();
 });
 
-/*
- test('where: both operand as pointer', t=> {
- const actual = q()
- .select()
- .from('users')
- .where('foo', 'users.bar')
- .build();
- const expected = 'SELECT * FROM "users" WHERE "foo"="users"."bar"';
- t.equal(actual, expected);
- t.end();
- });
- */
-
 test('where: add clauses with AND logical operator', t=> {
   const actual = select('name', 'age')
     .from('users')
     .where('foo', 'blah')
     .and('age', '>=', 4)
-    .and('blah','wat')
+    .and('blah', 'wat')
     .build();
   const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' AND "age">=\'4\' AND "blah"=\'wat\'';
   t.equal(actual, expected);

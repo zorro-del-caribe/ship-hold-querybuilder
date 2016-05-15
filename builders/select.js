@@ -1,29 +1,15 @@
 const stampit = require('stampit');
-const nodes = require('./lib/nodes');
-const where = require('./where');
+const nodes = require('../lib/nodes');
+const conditions = require('./conditions');
+const clause = require('./clause');
 
 const select = stampit()
   .init(function () {
-    this.selectNodes = nodes.compositeNode({separator: ', '});
-    this.tableNodes = nodes.compositeNode({separator: ', '});
     this.whereNodes = nodes.compositeNode();
     this.orderByNodes = nodes.compositeNode();
     this.limitNodes = nodes.compositeNode();
   })
   .methods({
-    select(){
-      const args = [...arguments];
-      this.selectNodes.add(...args.map(a=>nodes.pointerNode(a)));
-      return this;
-    },
-    table(){
-      const args = [...arguments];
-      this.tableNodes.add(...args.map(a=>nodes.pointerNode(a)));
-      return this;
-    },
-    from(){
-      return this.table(...[...arguments]);
-    },
     build(){
       const queryNode = nodes.compositeNode();
 
@@ -34,7 +20,7 @@ const select = stampit()
       }
 
       eventuallyAdd(this.selectNodes, 'select');
-      eventuallyAdd(this.tableNodes, 'from');
+      eventuallyAdd(this.fromNodes, 'from');
       eventuallyAdd(this.whereNodes, 'where');
       eventuallyAdd(this.orderByNodes, 'order by');
       eventuallyAdd(this.limitNodes, 'limit');
@@ -42,25 +28,20 @@ const select = stampit()
     },
     where(){
       const builder = this;
-      const delegate = where()
-        .where(...[...arguments]);
+      const delegate = conditions()
+        .where(...arguments);
       const revocable = Proxy.revocable(delegate, {
         get(target, property, receiver){
-          if (target[property]) {
+          console.log(property);
+          if (target[property] && property !== 'build') {
             return target[property];
           } else {
-            revocable.revoke();
-            builder.whereNodes.add(...delegate.nodes.nodes);
+            builder.whereNodes.add(...delegate.conditions.nodes);
             return builder[property].bind(builder);
           }
         }
       });
       return revocable.proxy;
-    },
-    orWhere(){
-      const args = [...arguments];
-      this.whereNodes.add(nodes.valueNode('OR'));
-      return this.where(...args);
     },
     orderBy(column, direction){
       this.orderByNodes.add(nodes.pointerNode(column));
@@ -77,7 +58,8 @@ const select = stampit()
       }
       return this;
     }
-  });
+  })
+  .compose(clause('from'), clause('select'));
 
 module.exports = function () {
   const args = [...arguments];
