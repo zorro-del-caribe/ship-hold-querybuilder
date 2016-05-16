@@ -44,8 +44,7 @@ const select = stampit()
   })
   .compose(clause('from'), clause('select'), where);
 
-module.exports = function () {
-  const args = [...arguments];
+module.exports = function (...args) {
   if (args.length === 0) {
     args.push('*');
   }

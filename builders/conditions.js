@@ -8,14 +8,13 @@ const conditionStamp = stampit()
   .methods({
     or(){
       this.conditions.add(nodes.valueNode('OR'));
-      return this.where(...[...arguments]);
+      return this.if(...arguments);
     },
     and(){
       this.conditions.add(nodes.valueNode('AND'));
-      return this.where(...[...arguments]);
+      return this.if(...arguments);
     },
-    where(){
-      const args = [...arguments];
+    if(...args){
       if (args.length === 2) {
         args.splice(1, 0, '=');
       }

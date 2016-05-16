@@ -8,8 +8,7 @@ module.exports = function factory (namespace) {
       this[nodeProp] = nodes.compositeNode({separator: ', '});
     })
     .methods({
-      [namespace]: function () {
-        const args = [...arguments];
+      [namespace]: function (...args) {
         this[nodeProp].add(...args.map(a=>nodes.pointerNode(a)));
         return this;
       }

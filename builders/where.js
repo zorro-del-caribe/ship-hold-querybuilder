@@ -10,7 +10,7 @@ module.exports = stampit()
     where(){
       const builder = this;
       const delegate = conditions()
-        .where(...arguments);
+        .if(...arguments);
       const revocable = Proxy.revocable(delegate, {
         get(target, property, receiver){
           if (target[property] && property !== 'build') {
