@@ -3,8 +3,8 @@ const select = require('../builders/select');
 
 test('select given columns from a table', t=> {
   const actual = select('foo', 'bar')
-      .from('users')
-      .build();
+    .from('users')
+    .build();
 
   const expected = 'SELECT "foo", "bar" FROM "users"';
   t.equal(actual, expected);
