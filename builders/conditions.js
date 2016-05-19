@@ -19,7 +19,7 @@ const conditionStamp = stampit()
         args.unshift('=')
       }
       if (leftOperand.build && typeof leftOperand.build === 'function') {
-        this.conditions.add(nodes.expressionNode(leftOperand.build()));
+        this.conditions.add(nodes.expressionNode(leftOperand.build().text));
       } else {
         const [operator,rightOperand] = args;
         const leftOperandNode = nodes.pointerNode(leftOperand);
@@ -31,8 +31,8 @@ const conditionStamp = stampit()
       }
       return this;
     },
-    build(){
-      return this.conditions.build();
+    build(params = {}, offset = 1){
+      return this.conditions.build(params, offset);
     }
   });
 

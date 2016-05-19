@@ -12,12 +12,10 @@ const insertStamp = stampit()
       this.valueNodes.add(value !== undefined ? nodes.castNode(value) : nodes.valueNode('DEFAULT'));
       return this;
     },
-    build(){
+    build(params = {}){
       const queryNode = nodes.compositeNode();
-      const fieldExpression = this.fieldNodes.build();
-      const valueExpression = this.valueNodes.build();
-      queryNode.add('INSERT INTO', this.intoNodes, nodes.expressionNode(fieldExpression), 'VALUES', nodes.expressionNode(valueExpression));
-      return queryNode.build();
+      queryNode.add('INSERT INTO', this.intoNodes, '(', this.fieldNodes,')', 'VALUES','(',this.valueNodes,')');
+      return queryNode.build(params);
     }
   })
   .compose(clause('into'), clause('field'));

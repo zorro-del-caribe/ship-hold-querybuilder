@@ -8,7 +8,7 @@ const deleteStamp = stampit()
     from(){
       return this.table(...arguments)
     },
-    build(){
+    build(params={}){
       const queryNode = nodes.compositeNode()
         .add('DELETE FROM', this.tableNodes);
 
@@ -16,7 +16,7 @@ const deleteStamp = stampit()
         queryNode.add('WHERE', this.whereNodes);
       }
 
-      return queryNode.build();
+      return queryNode.build(params);
     }
   })
   .compose(clauses('table'), where);

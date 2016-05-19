@@ -26,7 +26,7 @@ const updateStamp = stampit()
       }
       return this;
     },
-    build(){
+    build(params={}){
       const queryNode = nodes.compositeNode()
         .add('UPDATE', this.tableNodes, 'SET', this.valueNodes);
 
@@ -34,7 +34,7 @@ const updateStamp = stampit()
         queryNode.add('WHERE', this.whereNodes);
       }
 
-      return queryNode.build();
+      return queryNode.build(params);
     }
   })
   .compose(clauses('table'), where);

@@ -10,7 +10,7 @@ const select = stampit()
     this.limitNodes = nodes.compositeNode();
   })
   .methods({
-    build(){
+    build(params = {}){
       const queryNode = nodes.compositeNode();
 
       function eventuallyAdd (composite, keyWord) {
@@ -24,7 +24,7 @@ const select = stampit()
       eventuallyAdd(this.whereNodes, 'where');
       eventuallyAdd(this.orderByNodes, 'order by');
       eventuallyAdd(this.limitNodes, 'limit');
-      return queryNode.build();
+      return queryNode.build(params);
     },
     orderBy(column, direction){
       this.orderByNodes.add(nodes.pointerNode(column));
