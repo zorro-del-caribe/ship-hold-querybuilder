@@ -9,7 +9,7 @@ const insertStamp = stampit()
   .methods({
     value(prop, value){
       this.field(prop);
-      this.valueNodes.add(value !== undefined ? nodes.castNode(value): nodes.valueNode('DEFAULT'));
+      this.valueNodes.add(value !== undefined ? nodes.castNode(value) : nodes.valueNode('DEFAULT'));
       return this;
     },
     build(){
@@ -20,15 +20,13 @@ const insertStamp = stampit()
       return queryNode.build();
     }
   })
-  .compose(clause('into'))
-  .compose(clause('field'));
+  .compose(clause('into'), clause('field'));
 
 module.exports = function (map = {}) {
   const builder = insertStamp();
-  Object.getOwnPropertyNames(map)
-    .forEach((prop)=> {
-      const value = map[prop];
-      builder.value(prop, value);
-    });
+  for (const prop of Object.getOwnPropertyNames(map)) {
+    const value = map[prop];
+    builder.value(prop, value);
+  }
   return builder;
 };

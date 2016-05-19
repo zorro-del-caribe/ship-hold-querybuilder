@@ -14,16 +14,17 @@ const conditionStamp = stampit()
       this.conditions.add(nodes.valueNode('AND'));
       return this.if(...arguments);
     },
-    if(...args){
-      if (args.length === 2) {
-        args.splice(1, 0, '=');
+    if(leftOperand, ...args){
+      if (args.length === 1) {
+        args.unshift('=')
       }
-      if (args.length === 1 && args[0].build && typeof args[0].build === 'function') {
-        this.conditions.add(nodes.expressionNode(args[0].build()));
+      if (leftOperand.build && typeof leftOperand.build === 'function') {
+        this.conditions.add(nodes.expressionNode(leftOperand.build()));
       } else {
-        const leftOperandNode = nodes.pointerNode(args[0]);
-        const operatorNode = nodes.valueNode(args[1]);
-        const rightOperandNode = nodes.castNode(args[2]);
+        const [operator,rightOperand] = args;
+        const leftOperandNode = nodes.pointerNode(leftOperand);
+        const operatorNode = nodes.valueNode(operator);
+        const rightOperandNode = nodes.castNode(rightOperand);
         const whereNode = nodes.compositeNode({separator: ''});
         whereNode.add(leftOperandNode, operatorNode, rightOperandNode);
         this.conditions.add(whereNode);
