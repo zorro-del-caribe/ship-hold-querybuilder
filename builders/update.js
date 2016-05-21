@@ -26,18 +26,20 @@ const updateStamp = stampit()
       }
       return this;
     },
-    build(params={}){
+    build(params = {}){
       const queryNode = nodes.compositeNode()
         .add('UPDATE', this.tableNodes, 'SET', this.valueNodes);
 
       if (this.whereNodes.length > 0) {
         queryNode.add('WHERE', this.whereNodes);
       }
-
+      if (this.returningNodes.length > 0) {
+        queryNode.add('RETURNING', this.returningNodes);
+      }
       return queryNode.build(params);
     }
   })
-  .compose(clauses('table'), where);
+  .compose(clauses('table'), where, clauses('returning'));
 
 module.exports = function (tableName) {
   return updateStamp()

@@ -14,11 +14,14 @@ const insertStamp = stampit()
     },
     build(params = {}){
       const queryNode = nodes.compositeNode();
-      queryNode.add('INSERT INTO', this.intoNodes, '(', this.fieldNodes,')', 'VALUES','(',this.valueNodes,')');
+      queryNode.add('INSERT INTO', this.intoNodes, '(', this.fieldNodes, ')', 'VALUES', '(', this.valueNodes, ')');
+      if (this.returningNodes.length) {
+        queryNode.add('RETURNING', this.returningNodes);
+      }
       return queryNode.build(params);
     }
   })
-  .compose(clause('into'), clause('field'));
+  .compose(clause('into'), clause('field'), clause('returning'));
 
 module.exports = function (map = {}) {
   const builder = insertStamp();
