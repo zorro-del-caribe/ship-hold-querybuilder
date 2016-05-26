@@ -9,7 +9,7 @@ const insertStamp = stampit()
   .methods({
     value(prop, value){
       this.field(prop);
-      this.valueNodes.add(value !== undefined ? nodes.castNode(value) : nodes.valueNode('DEFAULT'));
+      this.valueNodes.add(value !== undefined ? nodes.valueNode(value) : nodes.identityNode('DEFAULT'));
       return this;
     },
     build(params = {}){

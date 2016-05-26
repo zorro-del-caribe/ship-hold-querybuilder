@@ -30,14 +30,14 @@ const select = stampit()
       this.orderByNodes.add(nodes.pointerNode(column));
       const actualDirection = (direction && direction.toString() || '').toLowerCase();
       if (actualDirection === 'asc' || actualDirection === 'desc') {
-        this.orderByNodes.add(nodes.valueNode(actualDirection.toUpperCase()));
+        this.orderByNodes.add(nodes.identityNode(actualDirection.toUpperCase()));
       }
       return this;
     },
     limit(l, offset){
-      this.limitNodes.add(nodes.castNode(l));
+      this.limitNodes.add(nodes.valueNode(l));
       if (offset) {
-        this.limitNodes.add(nodes.valueNode('OFFSET'), nodes.castNode(offset));
+        this.limitNodes.add(nodes.identityNode('OFFSET'), nodes.valueNode(offset));
       }
       return this;
     }

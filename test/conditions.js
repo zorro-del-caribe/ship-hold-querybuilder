@@ -56,7 +56,7 @@ test('use subquery', t=> {
   t.end();
 });
 
-/*test('sub query with params', t=> {
+test('sub query with params', t=> {
   const subq = conditions()
     .if('foo', 'bar')
     .and('bar', '>', '$bar');
@@ -70,4 +70,4 @@ test('use subquery', t=> {
   t.equal(actual.text, expected);
   t.deepEqual(actual.values, ['blah', 4]);
   t.end();
-});*/
+});

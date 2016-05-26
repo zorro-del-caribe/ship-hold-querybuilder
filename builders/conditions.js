@@ -7,11 +7,11 @@ const conditionStamp = stampit()
   })
   .methods({
     or(){
-      this.conditions.add(nodes.valueNode('OR'));
+      this.conditions.add(nodes.identityNode('OR'));
       return this.if(...arguments);
     },
     and(){
-      this.conditions.add(nodes.valueNode('AND'));
+      this.conditions.add(nodes.identityNode('AND'));
       return this.if(...arguments);
     },
     if(leftOperand, ...args){
@@ -19,12 +19,12 @@ const conditionStamp = stampit()
         args.unshift('=')
       }
       if (leftOperand.build && typeof leftOperand.build === 'function') {
-        this.conditions.add(nodes.expressionNode(leftOperand.build().text));
+        this.conditions.add(nodes.expressionNode(leftOperand));
       } else {
         const [operator,rightOperand] = args;
         const leftOperandNode = nodes.pointerNode(leftOperand);
-        const operatorNode = nodes.valueNode(operator);
-        const rightOperandNode = nodes.castNode(rightOperand);
+        const operatorNode = nodes.identityNode(operator);
+        const rightOperandNode = nodes.valueNode(rightOperand);
         const whereNode = nodes.compositeNode({separator: ''});
         whereNode.add(leftOperandNode, operatorNode, rightOperandNode);
         this.conditions.add(whereNode);

@@ -11,6 +11,7 @@ module.exports = stampit()
       const builder = this;
       const delegate = conditions()
         .if(...arguments);
+
       delegate.builder = this;
 
       const revocable = Proxy.revocable(delegate, {

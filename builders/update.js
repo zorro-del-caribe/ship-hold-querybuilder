@@ -12,7 +12,7 @@ const updateStamp = stampit()
 
       function createSetNode (prop, value) {
         const propNode = nodes.pointerNode(prop);
-        const valueNode = nodes.castNode(value);
+        const valueNode = nodes.valueNode(value);
         return nodes.compositeNode({separator: ''})
           .add(propNode, '=', valueNode);
       }
