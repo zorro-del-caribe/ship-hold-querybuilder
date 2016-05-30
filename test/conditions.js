@@ -25,7 +25,7 @@ test('combine conditions', t=> {
     .and('blah.what', 'woot')
     .or('age', '<=', 66)
     .build().text;
-  const expected = '"foo"<=\'bar\' AND "blah"."what"=\'woot\' OR "age"<=\'66\'';
+  const expected = '"foo"<=\'bar\' AND "blah"."what"=\'woot\' OR "age"<=66';
   t.equal(actual, expected);
   t.end();
 });
@@ -51,7 +51,7 @@ test('use subquery', t=> {
     .or(subq)
     .build().text;
 
-  const expected = '"wat"=\'blah\' OR ("foo"=\'bar\' AND "bar">\'4\')';
+  const expected = '"wat"=\'blah\' OR ("foo"=\'bar\' AND "bar">4)';
   t.equal(actual, expected);
   t.end();
 });

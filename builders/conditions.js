@@ -1,6 +1,7 @@
 const stampit = require('stampit');
 const nodes = require('../lib/nodes');
 
+// builder to create conditional statement with left Operand, operator and right operand
 const conditionStamp = stampit()
   .init(function () {
     this.conditions = nodes.compositeNode();

@@ -2,6 +2,7 @@ const stampit = require('stampit');
 const nodes = require('../lib/nodes');
 const clause = require('./clause');
 
+// insert query builder
 const insertStamp = stampit()
   .init(function () {
     this.valueNodes = nodes.compositeNode({separator: ', '});

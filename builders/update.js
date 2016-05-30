@@ -3,6 +3,7 @@ const nodes = require('../lib/nodes');
 const clauses = require('./clause');
 const where = require('./where');
 
+//update query builder
 const updateStamp = stampit()
   .init(function () {
     this.valueNodes = nodes.compositeNode({separator: ', '});

@@ -14,7 +14,7 @@ test('delete with where clause', t=> {
     .where('foo', '<', 'bar')
     .and('woot', 6)
     .build().text;
-  const expected = 'DELETE FROM "users" WHERE "foo"<\'bar\' AND "woot"=\'6\'';
+  const expected = 'DELETE FROM "users" WHERE "foo"<\'bar\' AND "woot"=6';
   t.equal(actual, expected);
   t.end();
 });

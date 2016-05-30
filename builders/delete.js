@@ -3,6 +3,7 @@ const nodes = require('../lib/nodes');
 const clauses = require('./clause');
 const where = require('./where');
 
+//delete query builder
 const deleteStamp = stampit()
   .methods({
     from(){

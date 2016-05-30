@@ -43,6 +43,20 @@ test('use table labels', t=> {
   t.end();
 });
 
+test('use sub query for table', t=> {
+  const sub = select('foo')
+    .from('bar');
+
+  const actual = select()
+    .from(sub)
+    .build()
+    .text;
+
+  const expected = 'SELECT * FROM (SELECT "foo" FROM "bar")';
+  t.equal(actual, expected);
+  t.end();
+});
+
 test('involve more than one table', t=> {
   const actual = select('foo', 'bar')
     .from('users', {value: 'product', as: 'p'})
@@ -68,7 +82,7 @@ test('where: use provided operator', t=> {
     .where('foo', '>', 12)
     .build()
     .text;
-  const expected = 'SELECT * FROM "users" WHERE "foo">\'12\'';
+  const expected = 'SELECT * FROM "users" WHERE "foo">12';
   t.equal(actual, expected);
   t.end();
 });
@@ -79,7 +93,7 @@ test('where: use default operator', t=> {
     .where('foo', 12)
     .build()
     .text;
-  const expected = 'SELECT * FROM "users" WHERE "foo"=\'12\'';
+  const expected = 'SELECT * FROM "users" WHERE "foo"=12';
   t.equal(actual, expected);
   t.end();
 });
@@ -92,7 +106,7 @@ test('where: add clauses with AND logical operator', t=> {
     .and('blah', 'wat')
     .build()
     .text;
-  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' AND "age">=\'4\' AND "blah"=\'wat\'';
+  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' AND "age">=4 AND "blah"=\'wat\'';
   t.equal(actual, expected);
   t.end();
 });
@@ -104,7 +118,7 @@ test('where: use OR clause', t=> {
     .or('age', '>=', 4)
     .build()
     .text;
-  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' OR "age">=\'4\'';
+  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' OR "age">=4';
   t.equal(actual, expected);
   t.end();
 });
@@ -139,7 +153,7 @@ test('limit with no offset', t=> {
     .limit(4)
     .build()
     .text;
-  const expected = 'SELECT * FROM "users" LIMIT \'4\'';
+  const expected = 'SELECT * FROM "users" LIMIT 4';
   t.equal(actual, expected);
   t.end();
 });
@@ -150,7 +164,7 @@ test('limit with offset', t=> {
     .limit(4, 5)
     .build()
     .text;
-  const expected = 'SELECT * FROM "users" LIMIT \'4\' OFFSET \'5\'';
+  const expected = 'SELECT * FROM "users" LIMIT 4 OFFSET 5';
   t.equal(actual, expected);
   t.end();
 });
@@ -164,5 +178,44 @@ test('support query parameters', t=> {
 
   t.equal(actual.text, 'SELECT * FROM "users" WHERE "foo"=$1 AND "blah"=$2');
   t.deepEqual(actual.values, ['bar', 4]);
+  t.end();
+});
+
+test('inner join', t=> {
+  const actual = select()
+    .from('users')
+    .join('products')
+    .on('users.id', '"products"."id"')
+    .and('users.id', '=', 4)
+    .build();
+
+  t.equal(actual.text, 'SELECT * FROM "users" JOIN "products" ON "users"."id"="products"."id" AND "users"."id"=4')
+  t.end();
+});
+
+test('join with params', t=> {
+  const actual = select()
+    .from('users')
+    .leftJoin('products')
+    .on('users.id', '"products"."id"')
+    .and('users.id', '$userId')
+    .where('users.age', '$age')
+    .build({age: 5, userId: 666});
+  const expected = 'SELECT * FROM "users" LEFT JOIN "products" ON "users"."id"="products"."id" AND "users"."id"=$1 WHERE "users"."age"=$2';
+  t.equal(actual.text, expected);
+  t.deepEqual(actual.values, [666, 5]);
+  t.end();
+});
+
+test('combine joins', t=> {
+  const actual = select()
+    .from('users')
+    .rightJoin('products')
+    .on('users.id', '"products"."userId"')
+    .fullJoin('addresses')
+    .on('users.id', '"addresses"."userId"')
+    .build().text;
+  const expected = 'SELECT * FROM "users" RIGHT JOIN "products" ON "users"."id"="products"."userId" FULL JOIN "addresses" ON "users"."id"="addresses"."userId"';
+  t.equal(actual,expected);
   t.end();
 });

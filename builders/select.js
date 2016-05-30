@@ -3,11 +3,21 @@ const nodes = require('../lib/nodes');
 const conditions = require('./conditions');
 const clause = require('./clause');
 const where = require('./where');
+const proxy = require('../lib/proxyCondition');
 
+function joinFunc (joinType = 'JOIN') {
+  return function (table) {
+    this.joinNodes.add(nodes.identityNode(joinType), nodes.pointerNode(table));
+    return this;
+  }
+}
+
+//select query builder
 const select = stampit()
   .init(function () {
     this.orderByNodes = nodes.compositeNode();
     this.limitNodes = nodes.compositeNode();
+    this.joinNodes = nodes.compositeNode();
   })
   .methods({
     build(params = {}){
@@ -21,10 +31,22 @@ const select = stampit()
 
       eventuallyAdd(this.selectNodes, 'select');
       eventuallyAdd(this.fromNodes, 'from');
+      if (this.joinNodes.length) {
+        queryNode.add(this.joinNodes);
+      }
       eventuallyAdd(this.whereNodes, 'where');
       eventuallyAdd(this.orderByNodes, 'order by');
       eventuallyAdd(this.limitNodes, 'limit');
       return queryNode.build(params);
+    },
+    join: joinFunc(),
+    leftJoin: joinFunc('LEFT JOIN'),
+    rightJoin: joinFunc('RIGHT JOIN'),
+    fullJoin: joinFunc('FULL JOIN'),
+    on(){
+      //todo throw exception if last join nodes is not a identity node
+      this.joinNodes.add('ON');
+      return proxy(this, this.joinNodes)(...arguments);
     },
     orderBy(column, direction){
       this.orderByNodes.add(nodes.pointerNode(column));
