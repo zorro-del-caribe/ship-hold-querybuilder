@@ -87,6 +87,15 @@ test('expression node: wrap with brackets', t=> {
   t.end();
 });
 
+test('expression node with label', t=> {
+  const sub = nodes.identityNode('MY EXPR');
+  const n = nodes.expressionNode({value: sub, as: 'exp'});
+  const actual = n.build().text;
+  const expected = '(MY EXPR) AS "exp"';
+  t.equal(actual,expected);
+  t.end();
+});
+
 test('value node: wrap with simple quote', t=> {
   const n = nodes.valueNode('blah');
   const actual = n.build().text;

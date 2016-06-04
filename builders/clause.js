@@ -10,7 +10,8 @@ module.exports = function factory (namespace) {
     })
     .methods({
       [namespace]: function (...args) {
-        this[nodeProp].add(...args.map(n=>n.build && typeof n.build === 'function' ? nodes.expressionNode(n) : nodes.pointerNode(n)));
+        const isSubQuery = node => node.value && node.value.build && typeof node.value.build === 'function';
+        this[nodeProp].add(...args.map(n=>isSubQuery(n) ? nodes.expressionNode(n) : nodes.pointerNode(n)));
         return this;
       }
     });

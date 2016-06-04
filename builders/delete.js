@@ -9,7 +9,7 @@ const deleteStamp = stampit()
     from(){
       return this.table(...arguments)
     },
-    build(params={}){
+    build(params = {}){
       const queryNode = nodes.compositeNode()
         .add('DELETE FROM', this.tableNodes);
 

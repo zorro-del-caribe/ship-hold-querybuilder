@@ -48,11 +48,11 @@ test('use sub query for table', t=> {
     .from('bar');
 
   const actual = select()
-    .from(sub)
+    .from({value: sub, as: 'label'})
     .build()
     .text;
 
-  const expected = 'SELECT * FROM (SELECT "foo" FROM "bar")';
+  const expected = 'SELECT * FROM (SELECT "foo" FROM "bar") AS "label"';
   t.equal(actual, expected);
   t.end();
 });
@@ -216,6 +216,6 @@ test('combine joins', t=> {
     .on('users.id', '"addresses"."userId"')
     .build().text;
   const expected = 'SELECT * FROM "users" RIGHT JOIN "products" ON "users"."id"="products"."userId" FULL JOIN "addresses" ON "users"."id"="addresses"."userId"';
-  t.equal(actual,expected);
+  t.equal(actual, expected);
   t.end();
 });
