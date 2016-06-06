@@ -4,7 +4,7 @@
   "description": "sql query builder for ship-hold ORM",
   "main": "index.js",
   "scripts": {
-    "test": "node ./test | tap-spec",
+    "test": "node test | tap-summary",
     "sloc": "sloc ./ --format cli-table --exclude \"node_modules|test|.idea\" --keys source,total"
   },
   "keywords": [
@@ -21,7 +21,7 @@
     "stampit": "^2.1.1"
   },
   "devDependencies": {
-    "tap-spec": "^4.1.1",
+    "tap-summary": "^2.1.0",
     "tape": "^4.5.1"
   }
 }
