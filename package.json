@@ -13,7 +13,8 @@
     "builder",
     "postgres",
     "orm",
-    "database"
+    "database",
+    "ship-hold"
   ],
   "author": "Laurent RENARD",
   "license": "MIT",

@@ -62,6 +62,10 @@ const select = stampit()
         this.limitNodes.add(nodes.identityNode('OFFSET'), nodes.valueNode(offset));
       }
       return this;
+    },
+    noop(){
+      // useful to revoke proxy
+      return this;
     }
   })
   .compose(clause('from'), clause('select'), where);
