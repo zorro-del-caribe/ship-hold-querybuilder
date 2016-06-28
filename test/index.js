@@ -5,3 +5,4 @@ require('./insert');
 require('./update');
 require('./where');
 require('./delete');
+require('./aggregations');

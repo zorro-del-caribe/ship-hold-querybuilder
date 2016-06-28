@@ -6,16 +6,18 @@ const where = require('./where');
 const proxy = require('../lib/proxyCondition');
 
 function joinFunc (joinType = 'JOIN') {
-  return function (table) {
-    this.joinNodes.add(nodes.identityNode(joinType), nodes.pointerNode(table));
-    return this;
+  return function (table, leftOperand, rightOperand) {
+    const isSubQuery = node => node.value && node.value.build && typeof node.value.build === 'function';
+    const node = isSubQuery(table) ? nodes.expressionNode(table) : nodes.pointerNode(table);
+    this.joinNodes.add(nodes.identityNode(joinType), node);
+    return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
   }
 }
 
 //select query builder
 const select = stampit()
   .init(function () {
-    this.orderByNodes = nodes.compositeNode();
+    this.orderByNodes = nodes.compositeNode({separator:', '});
     this.limitNodes = nodes.compositeNode();
     this.joinNodes = nodes.compositeNode();
   })
@@ -49,11 +51,13 @@ const select = stampit()
       return proxy(this, this.joinNodes)(...arguments);
     },
     orderBy(column, direction){
-      this.orderByNodes.add(nodes.pointerNode(column));
+      const newOrderByNode = nodes.compositeNode();
+      newOrderByNode.add(nodes.pointerNode(column));
       const actualDirection = (direction && direction.toString() || '').toLowerCase();
       if (actualDirection === 'asc' || actualDirection === 'desc') {
-        this.orderByNodes.add(nodes.identityNode(actualDirection.toUpperCase()));
+        newOrderByNode.add(nodes.identityNode(actualDirection.toUpperCase()));
       }
+      this.orderByNodes.add(newOrderByNode);
       return this;
     },
     limit(l, offset){
@@ -64,8 +68,7 @@ const select = stampit()
       return this;
     },
     noop(){
-      // useful to revoke proxy
-      return this;
+      return this;// useful for revoking proxy
     }
   })
   .compose(clause('from'), clause('select'), where);

@@ -1,5 +1,6 @@
 const test = require('tape');
 const select = require('../builders/select');
+const conditions = require('../builders/conditions');
 
 test('select given columns from a table', t=> {
   const actual = select('foo', 'bar')
@@ -143,6 +144,19 @@ test('order by: direction provided', t=> {
     .text;
 
   const expected = 'SELECT * FROM "users" WHERE "foo"=\'bar\' ORDER BY "foo" ASC';
+  t.equal(actual, expected);
+  t.end();
+});
+
+test('order by: multiple properties', t=> {
+  const actual = select()
+    .from('users')
+    .orderBy('foo', 'asc')
+    .orderBy('bar', 'desc')
+    .build()
+    .text;
+
+  const expected = 'SELECT * FROM "users" ORDER BY "foo" ASC, "bar" DESC';
   t.equal(actual, expected);
   t.end();
 });
