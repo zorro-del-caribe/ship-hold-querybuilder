@@ -83,7 +83,7 @@ test('where: use provided operator', t=> {
     .where('foo', '>', 12)
     .build()
     .text;
-  const expected = 'SELECT * FROM "users" WHERE "foo">12';
+  const expected = 'SELECT * FROM "users" WHERE "foo" > 12';
   t.equal(actual, expected);
   t.end();
 });
@@ -94,7 +94,7 @@ test('where: use default operator', t=> {
     .where('foo', 12)
     .build()
     .text;
-  const expected = 'SELECT * FROM "users" WHERE "foo"=12';
+  const expected = 'SELECT * FROM "users" WHERE "foo" = 12';
   t.equal(actual, expected);
   t.end();
 });
@@ -143,7 +143,7 @@ test('order by: direction provided', t=> {
     .build()
     .text;
 
-  const expected = 'SELECT * FROM "users" WHERE "foo"=\'bar\' ORDER BY "foo" ASC';
+  const expected = 'SELECT * FROM "users" WHERE "foo" = \'bar\' ORDER BY "foo" ASC';
   t.equal(actual, expected);
   t.end();
 });

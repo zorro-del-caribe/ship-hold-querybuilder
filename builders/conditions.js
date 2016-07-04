@@ -26,7 +26,7 @@ const conditionStamp = stampit()
         const leftOperandNode = nodes.pointerNode(leftOperand);
         const operatorNode = nodes.identityNode(operator);
         const rightOperandNode = nodes.valueNode(rightOperand);
-        const whereNode = nodes.compositeNode({separator: ''});
+        const whereNode = nodes.compositeNode({separator: ' '});
         whereNode.add(leftOperandNode, operatorNode, rightOperandNode);
         this.conditions.add(whereNode);
       }
