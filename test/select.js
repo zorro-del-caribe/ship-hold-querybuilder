@@ -107,7 +107,7 @@ test('where: add clauses with AND logical operator', t=> {
     .and('blah', 'wat')
     .build()
     .text;
-  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' AND "age">=4 AND "blah"=\'wat\'';
+  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo" = \'blah\' AND "age" >= 4 AND "blah" = \'wat\'';
   t.equal(actual, expected);
   t.end();
 });
@@ -119,7 +119,7 @@ test('where: use OR clause', t=> {
     .or('age', '>=', 4)
     .build()
     .text;
-  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo"=\'blah\' OR "age">=4';
+  const expected = 'SELECT "name", "age" FROM "users" WHERE "foo" = \'blah\' OR "age" >= 4';
   t.equal(actual, expected);
   t.end();
 });
@@ -190,7 +190,7 @@ test('support query parameters', t=> {
     .and('blah', '$blah')
     .build({foo: 'bar', blah: 4});
 
-  t.equal(actual.text, 'SELECT * FROM "users" WHERE "foo"=$1 AND "blah"=$2');
+  t.equal(actual.text, 'SELECT * FROM "users" WHERE "foo" = $1 AND "blah" = $2');
   t.deepEqual(actual.values, ['bar', 4]);
   t.end();
 });
@@ -203,7 +203,7 @@ test('inner join', t=> {
     .and('users.id', '=', 4)
     .build();
 
-  t.equal(actual.text, 'SELECT * FROM "users" JOIN "products" ON "users"."id"="products"."id" AND "users"."id"=4')
+  t.equal(actual.text, 'SELECT * FROM "users" JOIN "products" ON "users"."id" = "products"."id" AND "users"."id" = 4')
   t.end();
 });
 
@@ -215,7 +215,7 @@ test('join with params', t=> {
     .and('users.id', '$userId')
     .where('users.age', '$age')
     .build({age: 5, userId: 666});
-  const expected = 'SELECT * FROM "users" LEFT JOIN "products" ON "users"."id"="products"."id" AND "users"."id"=$1 WHERE "users"."age"=$2';
+  const expected = 'SELECT * FROM "users" LEFT JOIN "products" ON "users"."id" = "products"."id" AND "users"."id" = $1 WHERE "users"."age" = $2';
   t.equal(actual.text, expected);
   t.deepEqual(actual.values, [666, 5]);
   t.end();
@@ -229,7 +229,7 @@ test('combine joins', t=> {
     .fullJoin('addresses')
     .on('users.id', '"addresses"."userId"')
     .build().text;
-  const expected = 'SELECT * FROM "users" RIGHT JOIN "products" ON "users"."id"="products"."userId" FULL JOIN "addresses" ON "users"."id"="addresses"."userId"';
+  const expected = 'SELECT * FROM "users" RIGHT JOIN "products" ON "users"."id" = "products"."userId" FULL JOIN "addresses" ON "users"."id" = "addresses"."userId"';
   t.equal(actual, expected);
   t.end();
 });

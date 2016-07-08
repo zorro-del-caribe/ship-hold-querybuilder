@@ -5,7 +5,7 @@ test('use provided operator', t=> {
   const actual = conditions()
     .if('foo', '<=', 'bar')
     .build().text;
-  const expected = '"foo"<=\'bar\'';
+  const expected = '"foo" <= \'bar\'';
   t.equal(actual, expected);
   t.end();
 });
@@ -14,7 +14,7 @@ test('use default operator', t=> {
   const actual = conditions()
     .if('foo', 'bar')
     .build().text;
-  const expected = '"foo"=\'bar\'';
+  const expected = '"foo" = \'bar\'';
   t.equal(actual, expected);
   t.end();
 });
@@ -25,7 +25,7 @@ test('combine conditions', t=> {
     .and('blah.what', 'woot')
     .or('age', '<=', 66)
     .build().text;
-  const expected = '"foo"<=\'bar\' AND "blah"."what"=\'woot\' OR "age"<=66';
+  const expected = '"foo" <= \'bar\' AND "blah"."what" = \'woot\' OR "age" <= 66';
   t.equal(actual, expected);
   t.end();
 });
@@ -36,7 +36,7 @@ test('combine conditions with params', t=> {
     .and('blah.what', '$what')
     .or('age', '<=', '$age')
     .build({bar: 'barval', what: 'whatval', age: 4});
-  t.equal(actual.text, '"foo"<=$1 AND "blah"."what"=$2 OR "age"<=$3');
+  t.equal(actual.text, '"foo" <= $1 AND "blah"."what" = $2 OR "age" <= $3');
   t.deepEqual(actual.values, ['barval', 'whatval', 4]);
   t.end();
 });
@@ -51,7 +51,7 @@ test('use subquery', t=> {
     .or(subq)
     .build().text;
 
-  const expected = '"wat"=\'blah\' OR ("foo"=\'bar\' AND "bar">4)';
+  const expected = '"wat" = \'blah\' OR ("foo" = \'bar\' AND "bar" > 4)';
   t.equal(actual, expected);
   t.end();
 });
@@ -66,7 +66,7 @@ test('sub query with params', t=> {
     .or(subq)
     .build({bar: 4, wat: 'blah'});
 
-  const expected = '"wat"=$1 OR ("foo"=\'bar\' AND "bar">$2)';
+  const expected = '"wat" = $1 OR ("foo" = \'bar\' AND "bar" > $2)';
   t.equal(actual.text, expected);
   t.deepEqual(actual.values, ['blah', 4]);
   t.end();

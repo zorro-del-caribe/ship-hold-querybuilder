@@ -3,7 +3,6 @@ const nodes = require('../lib/nodes');
 const clauses = require('./clause');
 const where = require('./where');
 
-//update query builder
 const updateStamp = stampit()
   .init(function () {
     this.valueNodes = nodes.compositeNode({separator: ', '});
@@ -14,7 +13,7 @@ const updateStamp = stampit()
       function createSetNode (prop, value) {
         const propNode = nodes.pointerNode(prop);
         const valueNode = nodes.valueNode(value);
-        return nodes.compositeNode({separator: ''})
+        return nodes.compositeNode({separator: ' '})
           .add(propNode, '=', valueNode);
       }
 
@@ -31,16 +30,20 @@ const updateStamp = stampit()
       const queryNode = nodes.compositeNode()
         .add('UPDATE', this.tableNodes, 'SET', this.valueNodes);
 
-      if (this.whereNodes.length > 0) {
+      if (this.fromNodes.length) {
+        queryNode.add('FROM', this.fromNodes);
+      }
+
+      if (this.whereNodes.length) {
         queryNode.add('WHERE', this.whereNodes);
       }
-      if (this.returningNodes.length > 0) {
+      if (this.returningNodes.length) {
         queryNode.add('RETURNING', this.returningNodes);
       }
       return queryNode.build(params);
     }
   })
-  .compose(clauses('table'), where, clauses('returning'));
+  .compose(clauses('table'), where, clauses('returning'), clauses('from'));
 
 module.exports = function (tableName) {
   return updateStamp()

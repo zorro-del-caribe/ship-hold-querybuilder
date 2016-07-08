@@ -16,21 +16,27 @@ const conditionStamp = stampit()
       return this.if(...arguments);
     },
     if(leftOperand, ...args){
-      if (args.length === 1) {
-        args.unshift('=')
-      }
-      if (leftOperand.build && typeof leftOperand.build === 'function') {
-        this.conditions.add(nodes.expressionNode(leftOperand));
+
+      const leftOperandNode = isNode(leftOperand) ? nodes.expressionNode(leftOperand) : nodes.pointerNode(leftOperand);
+
+      if (args.length === 0) {
+        this.conditions.add(leftOperandNode);
       } else {
+        if (args.length === 1) {
+          args.unshift('=');
+        }
         const [operator,rightOperand] = args;
-        const leftOperandNode = nodes.pointerNode(leftOperand);
         const operatorNode = nodes.identityNode(operator);
-        const rightOperandNode = nodes.valueNode(rightOperand);
-        const whereNode = nodes.compositeNode({separator: ' '});
-        whereNode.add(leftOperandNode, operatorNode, rightOperandNode);
+        const rightOperandNode = isNode(rightOperand) ? nodes.expressionNode(rightOperand) : nodes.valueNode(rightOperand);
+        const whereNode = nodes.compositeNode({separator: ' '})
+          .add(leftOperandNode, operatorNode, rightOperandNode);
         this.conditions.add(whereNode);
       }
       return this;
+
+      function isNode (val) {
+        return val.build && typeof val.build === 'function';
+      }
     },
     build(params = {}, offset = 1){
       return this.conditions.build(params, offset);

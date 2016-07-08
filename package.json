@@ -1,11 +1,14 @@
 {
   "name": "ship-hold-querybuilder",
   "version": "1.0.0",
-  "description": "sql query builder for ship-hold ORM",
+  "description": "sql query builder for ship-hold data access framework",
   "main": "index.js",
   "scripts": {
-    "test": "node test | tap-summary",
-    "sloc": "sloc ./ --format cli-table --exclude \"node_modules|test|.idea\" --keys source,total"
+    "test": "node test | tap-summary"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zorro-del-caribe/ship-hold-querybuilder.git"
   },
   "keywords": [
     "sql",
@@ -16,6 +19,9 @@
     "database",
     "ship-hold"
   ],
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "author": "Laurent RENARD",
   "license": "MIT",
   "dependencies": {

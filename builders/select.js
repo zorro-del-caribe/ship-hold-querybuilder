@@ -14,7 +14,6 @@ function joinFunc (joinType = 'JOIN') {
   }
 }
 
-//select query builder
 const select = stampit()
   .init(function () {
     this.orderByNodes = nodes.compositeNode({separator:', '});
