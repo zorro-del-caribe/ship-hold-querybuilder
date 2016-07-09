@@ -1,6 +1,6 @@
 const test = require('tape');
-const select = require('../builders/select');
-const conditions = require('../builders/conditions');
+const select = require('../src/')().select;
+const conditions = require('../src/')().condition;
 
 test('select given columns from a table', t=> {
   const actual = select('foo', 'bar')

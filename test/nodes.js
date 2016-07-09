@@ -1,5 +1,5 @@
 const test = require('tape');
-const nodes = require('../lib/nodes');
+const nodes = require('../src/')().nodes;
 
 test('value node: build return the passed value', t => {
   const n = nodes.identityNode('value');

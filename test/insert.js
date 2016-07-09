@@ -1,4 +1,4 @@
-const insert = require('../builders/insert');
+const insert = require('../src/')().insert;
 const test = require('tape');
 
 test('insert values as defined by value', t=> {

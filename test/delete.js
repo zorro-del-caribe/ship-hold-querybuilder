@@ -1,5 +1,5 @@
 const test = require('tape');
-const del = require('../builders/delete');
+const del = require('../src')().delete;
 
 test('basic delete', t=> {
   const actual = del('users')

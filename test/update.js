@@ -1,6 +1,6 @@
 const test = require('tape');
-const update = require('../builders/update');
-const select = require('../builders/select');
+const update = require('../src/')().update;
+const select = require('../src/')().select;
 
 test('basic update', t=> {
   const actual = update('users')

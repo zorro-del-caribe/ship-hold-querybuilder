@@ -1,5 +1,5 @@
 const test = require('tape');
-const conditions = require('../builders/conditions');
+const conditions = require('../src/')().condition;
 
 test('use provided operator', t=> {
   const actual = conditions()

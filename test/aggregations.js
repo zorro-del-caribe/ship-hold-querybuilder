@@ -1,5 +1,5 @@
 const test = require('tape');
-const qb = require('../index')();
+const qb = require('../src/index')();
 const agg = qb.aggregate;
 
 test('select a count', t=> {

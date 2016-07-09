@@ -1,4 +1,4 @@
-const where = require('../builders/where');
+const where = require('../src/builders/where');
 const stampit = require('stampit');
 const test = require('tape');
 
