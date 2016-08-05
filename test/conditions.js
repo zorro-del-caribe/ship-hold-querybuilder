@@ -71,3 +71,14 @@ test('sub query with params', t=> {
   t.deepEqual(actual.values, ['blah', 4]);
   t.end();
 });
+
+test('support object as json', t=> {
+  const actual = conditions()
+    .if('jsondoc', '@>', {foo: 'bar'})
+    .build();
+
+  const expected = '"jsondoc" @> \'{"foo":"bar"}\'';
+
+  t.equal(actual.text,expected);
+  t.end();
+});

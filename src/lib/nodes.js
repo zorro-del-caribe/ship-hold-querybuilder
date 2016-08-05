@@ -119,7 +119,7 @@ const compositeNode = stampit()
       const text = [];
       const values = [];
       for (const node of this.nodes) {
-        const {text:newText, values:newVals=[]}=node.build(params, off);
+        const {text:newText, values:newVals = []}=node.build(params, off);
         text.push(newText);
         values.push(...newVals);
         off += newVals.length;
@@ -135,8 +135,7 @@ function parseValue (value) {
   switch (typeof value) {
     case 'string':
       return wrap(value, "'");
-    case 'object':
-    {
+    case 'object': {
       if (value === null) {
         return 'NULL'
       } else if (Array.isArray(value)) {
@@ -144,7 +143,7 @@ function parseValue (value) {
       } else if (value.toISOString) {
         return wrap(value.toISOString(), "'");
       } else {
-        return JSON.stringify(value);
+        return `'${JSON.stringify(value)}'`;
       }
     }
     default:
