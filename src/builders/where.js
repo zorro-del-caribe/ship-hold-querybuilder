@@ -1,14 +1,5 @@
-const stampit = require('stampit');
-const nodes = require('../lib/nodes');
-const proxy = require('../lib/proxyCondition');
+import proxy from '../lib/proxy-condition';
 
-// where clause builder
-module.exports = stampit()
-  .init(function () {
-    this.whereNodes = nodes.compositeNode();
-  })
-  .methods({
-    where(){
-      return proxy(this, this.whereNodes)(...arguments);
-    }
-  });
+export default nodes => function (...args) {
+	return proxy(this, nodes)(...args);
+};

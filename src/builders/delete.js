@@ -1,34 +1,36 @@
-const stampit = require('stampit');
-const nodes = require('../lib/nodes');
-const clauses = require('./clause');
-const where = require('./where');
+import {compositeNode} from '../lib/nodes';
+import clauseMethod from './clause';
+import where from './where';
 
-const deleteStamp = stampit()
-  .methods({
-    from(){
-      return this.table(...arguments);
-    },
-    build(params = {}){
-      const queryNode = nodes.compositeNode()
-        .add('DELETE FROM', this.tableNodes);
+export default tableName => {
+	const usingNodes = compositeNode();
+	const tableNodes = compositeNode();
+	const whereNodes = compositeNode();
 
-      if (this.usingNodes.length) {
-        queryNode.add('USING', this.usingNodes);
-      }
+	const instance = {
+		from(...args) {
+			return this.table(...args);
+		},
+		where: where(whereNodes),
+		table: clauseMethod(tableNodes),
+		using: clauseMethod(usingNodes),
+		build(params = {}) {
+			const queryNode = compositeNode()
+				.add('DELETE FROM', tableNodes);
 
-      if (this.whereNodes.length) {
-        queryNode.add('WHERE', this.whereNodes);
-      }
+			if (usingNodes.length > 0) {
+				queryNode.add('USING', usingNodes);
+			}
 
-      return queryNode.build(params);
-    }
-  })
-  .compose(clauses('table'), where, clauses('using'));
+			if (whereNodes.length > 0) {
+				queryNode.add('WHERE', whereNodes);
+			}
 
-module.exports = function (tableName) {
-  const instance = deleteStamp();
-  if (tableName) {
-    instance.from(tableName);
-  }
-  return instance;
+			return queryNode.build(params);
+		}
+	};
+	if (tableName) {
+		instance.from(tableName);
+	}
+	return instance;
 };

@@ -1,24 +1,28 @@
-const where = require('../src/builders/where');
-const stampit = require('stampit');
-const test = require('tape');
+import test from 'zora';
+import where from '../src/builders/where';
+import {compositeNode} from '../src/lib/nodes';
 
-test('create a chainable delegation', t=> {
-  const mainBuilder = stampit()
-    .methods({
-      foo(){
-        return this;
-      },
-      build(){
-        return 'build';
-      }
-    }).compose(where);
+test('where builder: create a chainable delegation', t => {
+	const mainBuilder = () => {
+		const whereNodes = compositeNode();
+		return {
+			foo() {
+				return this;
+			},
+			build() {
+				const queryNode = compositeNode();
+				queryNode.add('build >', whereNodes);
+				return queryNode.build();
+			},
+			where: where(whereNodes)
+		};
+	};
 
-  const actual = mainBuilder()
-    .where('blah', 'woot')
-    .and('test', 'test2')
-    .foo()
-    .build();
-  const expected = 'build';
-  t.equal(actual, expected);
-  t.end();
+	const actual = mainBuilder()
+		.where('blah', 'woot')
+		.and('test', 'test2')
+		.foo()
+		.build().text;
+	const expected = `build > "blah" = 'woot' AND "test" = 'test2'`;
+	t.equal(actual, expected);
 });

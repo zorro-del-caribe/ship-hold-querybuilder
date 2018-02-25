@@ -1,11 +1,10 @@
-const condition = require('./builders/conditions');
-const select = require('./builders/select');
-const update = require('./builders/update');
-const insert = require('./builders/insert');
-const del = require('./builders/delete');
-const nodes = require('./lib/nodes');
-const aggregate = require('./lib/aggregations');
+import * as aggregations from './lib/aggregations'
+import * as nodeFactories from './lib/nodes'
 
-module.exports = function () {
-  return {condition, select, update, insert, delete: del, nodes, aggregate};
-};
+export {default as condition} from './builders/conditions';
+export {default as select} from './builders/select';
+export {default as update} from './builders/update';
+export {default as insert} from './builders/insert';
+export {default as delete} from './builders/delete';
+export const nodes = nodeFactories;
+export const aggregate = aggregations;

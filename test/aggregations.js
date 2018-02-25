@@ -1,11 +1,11 @@
-const test = require('tape');
-const qb = require('../src/index')();
-const agg = qb.aggregate;
+import test from 'zora';
+import select from '../src/builders/select';
+import {count} from '../src/lib/aggregations';
 
-test('select a count', t=> {
-  const actual = qb.select(agg.count('*'))
-    .from('users')
-    .build();
-  t.equal(actual.text, 'SELECT COUNT(*) AS "count" FROM "users"');
-  t.end();
+test('select a count', t => {
+	const actual = select(count('*'))
+		.from('users')
+		.build();
+
+	t.equal(actual.text, 'SELECT COUNT(*) AS "count" FROM "users"');
 });

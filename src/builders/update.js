@@ -1,51 +1,48 @@
-const stampit = require('stampit');
-const nodes = require('../lib/nodes');
-const clauses = require('./clause');
-const where = require('./where');
+import {compositeNode, pointerNode, valueNode} from '../lib/nodes';
+import where from './where';
+import clauseMethod from './clause';
+import {fluentMethod} from "../lib/util";
 
-const updateStamp = stampit()
-  .init(function () {
-    this.valueNodes = nodes.compositeNode({separator: ', '});
-  })
-  .methods({
-    set(prop, value){
+const createSetNode = (prop, value) => compositeNode()
+	.add(pointerNode(prop), '=', valueNode(value));
 
-      function createSetNode (prop, value) {
-        const propNode = nodes.pointerNode(prop);
-        const valueNode = nodes.valueNode(value);
-        return nodes.compositeNode({separator: ' '})
-          .add(propNode, '=', valueNode);
-      }
+export default tableName => {
+	const whereNodes = compositeNode();
+	const tableNodes = compositeNode({separator: ', '});
+	const returningNodes = compositeNode({separator: ', '});
+	const fromNodes = compositeNode({separator: ', '});
+	const valueNodes = compositeNode({separator: ', '});
+	const instance = {
+		where: where(whereNodes),
+		returning: clauseMethod(returningNodes),
+		from: clauseMethod(fromNodes),
+		table: clauseMethod(tableNodes),
+		set:fluentMethod((prop, value) => {
+			const setNodes = value === undefined ?
+				Object.getOwnPropertyNames(prop)
+					.map(p => createSetNode(p, prop[p])) :
+				[createSetNode(prop, value)];
+			valueNodes.add(...setNodes);
+		}),
+		build(params = {}) {
+			const queryNode = compositeNode()
+				.add('UPDATE', tableNodes, 'SET', valueNodes);
 
-      if (value === undefined) {
-        const setNodes = Object.getOwnPropertyNames(prop).map(p=>createSetNode(p, prop[p]));
-        this.valueNodes.add(...setNodes);
-      } else {
-        const setNode = createSetNode(prop, value);
-        this.valueNodes.add(setNode);
-      }
-      return this;
-    },
-    build(params = {}){
-      const queryNode = nodes.compositeNode()
-        .add('UPDATE', this.tableNodes, 'SET', this.valueNodes);
+			if (fromNodes.length > 0) {
+				queryNode.add('FROM', fromNodes);
+			}
 
-      if (this.fromNodes.length) {
-        queryNode.add('FROM', this.fromNodes);
-      }
+			if (whereNodes.length > 0) {
+				queryNode.add('WHERE', whereNodes);
+			}
 
-      if (this.whereNodes.length) {
-        queryNode.add('WHERE', this.whereNodes);
-      }
-      if (this.returningNodes.length) {
-        queryNode.add('RETURNING', this.returningNodes);
-      }
-      return queryNode.build(params);
-    }
-  })
-  .compose(clauses('table'), where, clauses('returning'), clauses('from'));
+			if (returningNodes.length > 0) {
+				queryNode.add('RETURNING', returningNodes);
+			}
 
-module.exports = function (tableName) {
-  return updateStamp()
-    .table(tableName);
+			return queryNode.build(params);
+		}
+	};
+	instance.table(tableName);
+	return instance;
 };

@@ -2,10 +2,11 @@
   "name": "ship-hold-querybuilder",
   "version": "1.0.1",
   "description": "sql query builder for ship-hold data access framework",
-  "main": "./src/index.js",
+  "main": "./dist/index",
   "scripts": {
-    "test": "node test | tap-summary",
-    "build": "babel src --out-dir dist -s"
+    "xo": "xo ./src/**/*.js",
+    "build": "rollup -c ./rollup/build.js",
+    "test": "rollup -c ./rollup/test.js --output.format cjs | tee ./test/dist/debug.js | node"
   },
   "repository": {
     "type": "git",
@@ -25,18 +26,11 @@
   },
   "author": "Laurent RENARD",
   "license": "MIT",
-  "dependencies": {
-    "stampit": "^2.1.1"
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
-  },
   "devDependencies": {
-    "babel-cli": "^6.10.1",
-    "babel-preset-es2015": "^6.9.0",
-    "tap-summary": "^2.1.0",
-    "tape": "^4.5.1"
+    "rollup": "^0.56.2",
+    "rollup-plugin-commonjs": "^8.3.0",
+    "rollup-plugin-node-resolve": "^3.0.3",
+    "xo": "^0.20.3",
+    "zora": "^2.0.0"
   }
 }

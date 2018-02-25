@@ -1,46 +1,37 @@
-const stampit = require('stampit');
-const nodes = require('../lib/nodes');
+import {compositeNode, expressionNode, valueNode, pointerNode, identityNode} from '../lib/nodes';
+import {fluentMethod} from "../lib/util";
 
-// builder to create conditional statement with left Operand, operator and right operand
-const conditionStamp = stampit()
-  .init(function () {
-    this.conditions = nodes.compositeNode();
-  })
-  .methods({
-    or(){
-      this.conditions.add(nodes.identityNode('OR'));
-      return this.if(...arguments);
-    },
-    and(){
-      this.conditions.add(nodes.identityNode('AND'));
-      return this.if(...arguments);
-    },
-    if(leftOperand, ...args){
+const isNode = val => val.build && typeof val.build === 'function';
 
-      const leftOperandNode = isNode(leftOperand) ? nodes.expressionNode(leftOperand) : nodes.pointerNode(leftOperand);
+export default (conditionNodes = compositeNode()) => {
+	return {
+		or(...args) {
+			conditionNodes.add(identityNode('OR'));
+			return this.if(...args);
+		},
+		and(...args) {
+			conditionNodes.add(identityNode('AND'));
+			return this.if(...args);
+		},
+		if:fluentMethod((leftOperand, ...args) => {
+			const leftOperandNode = isNode(leftOperand) ? expressionNode(leftOperand) : pointerNode(leftOperand);
+			if (args.length === 0) {
+				conditionNodes.add(leftOperandNode);
+			} else {
+				if (args.length === 1) {
+					args.unshift('=');
+				}
+				const [operator, rightOperand] = args;
+				const operatorNode = identityNode(operator);
+				const rightOperandNode = isNode(rightOperand) ? expressionNode(rightOperand) : valueNode(rightOperand);
+				const whereNode = compositeNode()
+					.add(leftOperandNode, operatorNode, rightOperandNode);
 
-      if (args.length === 0) {
-        this.conditions.add(leftOperandNode);
-      } else {
-        if (args.length === 1) {
-          args.unshift('=');
-        }
-        const [operator,rightOperand] = args;
-        const operatorNode = nodes.identityNode(operator);
-        const rightOperandNode = isNode(rightOperand) ? nodes.expressionNode(rightOperand) : nodes.valueNode(rightOperand);
-        const whereNode = nodes.compositeNode({separator: ' '})
-          .add(leftOperandNode, operatorNode, rightOperandNode);
-        this.conditions.add(whereNode);
-      }
-      return this;
-
-      function isNode (val) {
-        return val.build && typeof val.build === 'function';
-      }
-    },
-    build(params = {}, offset = 1){
-      return this.conditions.build(params, offset);
-    }
-  });
-
-module.exports = conditionStamp;
+				conditionNodes.add(whereNode);
+			}
+		}),
+		build(params = {}, offset = 1) {
+			return conditionNodes.build(params, offset);
+		}
+	};
+};

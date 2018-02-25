@@ -1,33 +1,33 @@
-const stampit = require('stampit');
-const nodes = require('../lib/nodes');
-const clause = require('./clause');
+import {compositeNode, identityNode, valueNode} from '../lib/nodes';
+import clauseMethod from './clause';
+import {fluentMethod} from "../lib/util";
 
-const insertStamp = stampit()
-  .init(function () {
-    this.valueNodes = nodes.compositeNode({separator: ', '});
-  })
-  .methods({
-    value(prop, value){
-      this.field(prop);
-      this.valueNodes.add(value !== undefined ? nodes.valueNode(value) : nodes.identityNode('DEFAULT'));
-      return this;
-    },
-    build(params = {}){
-      const queryNode = nodes.compositeNode();
-      queryNode.add('INSERT INTO', this.intoNodes, '(', this.fieldNodes, ')', 'VALUES', '(', this.valueNodes, ')');
-      if (this.returningNodes.length) {
-        queryNode.add('RETURNING', this.returningNodes);
-      }
-      return queryNode.build(params);
-    }
-  })
-  .compose(clause('into'), clause('field'), clause('returning'));
+export default (map = {}) => {
+	const intoNodes = compositeNode({separator: ', '});
+	const fieldNodes = compositeNode({separator: ', '});
+	const returningNodes = compositeNode({separator: ', '});
+	const valueNodes = compositeNode({separator: ', '});
+	const instance = {
+		into: clauseMethod(intoNodes),
+		field: clauseMethod(fieldNodes),
+		returning: clauseMethod(returningNodes),
+		value: fluentMethod((prop, value) => {
+			instance.field(prop);
+			valueNodes.add(value === undefined ? identityNode('DEFAULT') : valueNode(value));
+		}),
+		build(params = {}) {
+			const queryNode = compositeNode();
+			queryNode.add('INSERT INTO', intoNodes, '(', fieldNodes, ')', 'VALUES', '(', valueNodes, ')');
+			if (returningNodes.length > 0) {
+				queryNode.add('RETURNING', returningNodes);
+			}
+			return queryNode.build(params);
+		}
+	};
 
-module.exports = function (map = {}) {
-  const builder = insertStamp();
-  for (const prop of Object.getOwnPropertyNames(map)) {
-    const value = map[prop];
-    builder.value(prop, value);
-  }
-  return builder;
+	for (const [key, value] of Object.entries(map)) {
+		instance.value(key, value);
+	}
+
+	return instance;
 };

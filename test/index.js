@@ -1,8 +1,8 @@
-require('./nodes');
-require('./conditions');
-require('./select');
-require('./insert');
-require('./update');
-require('./where');
-require('./delete');
-require('./aggregations');
+import './nodes';
+import './conditions';
+import './where';
+import './insert';
+import './delete';
+import './update';
+import './select';
+import './aggregations';
