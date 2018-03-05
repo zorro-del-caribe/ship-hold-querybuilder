@@ -1,5 +1,5 @@
 import {compositeNode, expressionNode, valueNode, pointerNode, identityNode} from '../lib/nodes';
-import {fluentMethod} from "../lib/util";
+import {fluentMethod} from '../lib/util';
 
 const isNode = val => val.build && typeof val.build === 'function';
 
@@ -13,7 +13,7 @@ export default (conditionNodes = compositeNode()) => {
 			conditionNodes.add(identityNode('AND'));
 			return this.if(...args);
 		},
-		if:fluentMethod((leftOperand, ...args) => {
+		if: fluentMethod((leftOperand, ...args) => {
 			const leftOperandNode = isNode(leftOperand) ? expressionNode(leftOperand) : pointerNode(leftOperand);
 			if (args.length === 0) {
 				conditionNodes.add(leftOperandNode);

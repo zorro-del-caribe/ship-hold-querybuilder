@@ -1,4 +1,4 @@
 export const fluentMethod = fn => function (...args) {
-	fn(...args);
+	fn.bind(this)(...args);
 	return this;
 };

@@ -1,4 +1,3 @@
-import {fluentMethod} from "./util";
 const STAR = '*';
 const isParamRegexp = /^\$/;
 

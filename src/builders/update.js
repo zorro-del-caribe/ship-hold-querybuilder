@@ -1,48 +1,54 @@
 import {compositeNode, pointerNode, valueNode} from '../lib/nodes';
+import {fluentMethod} from '../lib/util';
 import where from './where';
-import clauseMethod from './clause';
-import {fluentMethod} from "../lib/util";
+import {clauseMixin, nodeSymbol} from './clause';
 
 const createSetNode = (prop, value) => compositeNode()
 	.add(pointerNode(prop), '=', valueNode(value));
 
-export default tableName => {
-	const whereNodes = compositeNode();
-	const tableNodes = compositeNode({separator: ', '});
-	const returningNodes = compositeNode({separator: ', '});
-	const fromNodes = compositeNode({separator: ', '});
-	const valueNodes = compositeNode({separator: ', '});
-	const instance = {
-		where: where(whereNodes),
-		returning: clauseMethod(returningNodes),
-		from: clauseMethod(fromNodes),
-		table: clauseMethod(tableNodes),
-		set:fluentMethod((prop, value) => {
-			const setNodes = value === undefined ?
-				Object.getOwnPropertyNames(prop)
-					.map(p => createSetNode(p, prop[p])) :
-				[createSetNode(prop, value)];
-			valueNodes.add(...setNodes);
-		}),
-		build(params = {}) {
-			const queryNode = compositeNode()
-				.add('UPDATE', tableNodes, 'SET', valueNodes);
+const proto = Object.assign({
+	where,
+	set: fluentMethod(function (prop, value) {
+		const setNodes = value === undefined ?
+			Object.getOwnPropertyNames(prop)
+				.map(p => createSetNode(p, prop[p])) :
+			[createSetNode(prop, value)];
+		this[nodeSymbol].values.add(...setNodes);
+	}),
+	build(params = {}) {
+		const {table, values, from, where, returning} = this[nodeSymbol];
 
-			if (fromNodes.length > 0) {
-				queryNode.add('FROM', fromNodes);
-			}
+		const queryNode = compositeNode()
+			.add('UPDATE', table, 'SET', values);
 
-			if (whereNodes.length > 0) {
-				queryNode.add('WHERE', whereNodes);
-			}
-
-			if (returningNodes.length > 0) {
-				queryNode.add('RETURNING', returningNodes);
-			}
-
-			return queryNode.build(params);
+		if (from.length > 0) {
+			queryNode.add('FROM', from);
 		}
-	};
+
+		if (where.length > 0) {
+			queryNode.add('WHERE', where);
+		}
+
+		if (returning.length > 0) {
+			queryNode.add('RETURNING', returning);
+		}
+
+		return queryNode.build(params);
+	}
+}, clauseMixin('returning', 'from', 'table'));
+
+export default tableName => {
+	const instance = Object.create(proto, {
+		[nodeSymbol]: {
+			value: {
+				where: compositeNode(),
+				table: compositeNode({separator: ', '}),
+				returning: compositeNode({separator: ', '}),
+				from: compositeNode({separator: ', '}),
+				values: compositeNode({separator: ', '})
+			}
+		}
+	});
 	instance.table(tableName);
 	return instance;
 };

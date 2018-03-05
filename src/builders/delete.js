@@ -1,34 +1,40 @@
 import {compositeNode} from '../lib/nodes';
-import clauseMethod from './clause';
+import {clauseMixin, nodeSymbol} from './clause';
 import where from './where';
 
-export default tableName => {
-	const usingNodes = compositeNode();
-	const tableNodes = compositeNode();
-	const whereNodes = compositeNode();
+const proto = Object.assign({
+	where,
+	from(...args) {
+		return this.table(...args);
+	},
+	build(params = {}) {
+		const {table, using, where} = this[nodeSymbol];
+		const queryNode = compositeNode()
+			.add('DELETE FROM', table);
 
-	const instance = {
-		from(...args) {
-			return this.table(...args);
-		},
-		where: where(whereNodes),
-		table: clauseMethod(tableNodes),
-		using: clauseMethod(usingNodes),
-		build(params = {}) {
-			const queryNode = compositeNode()
-				.add('DELETE FROM', tableNodes);
-
-			if (usingNodes.length > 0) {
-				queryNode.add('USING', usingNodes);
-			}
-
-			if (whereNodes.length > 0) {
-				queryNode.add('WHERE', whereNodes);
-			}
-
-			return queryNode.build(params);
+		if (using.length > 0) {
+			queryNode.add('USING', using);
 		}
-	};
+
+		if (where.length > 0) {
+			queryNode.add('WHERE', where);
+		}
+
+		return queryNode.build(params);
+	}
+}, clauseMixin('table', 'using'));
+
+export default tableName => {
+	const instance = Object.create(proto, {
+		[nodeSymbol]: {
+			value: {
+				using: compositeNode(),
+				table: compositeNode(),
+				where: compositeNode()
+			}
+		}
+	});
+
 	if (tableName) {
 		instance.from(tableName);
 	}

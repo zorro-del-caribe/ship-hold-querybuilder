@@ -1,20 +1,21 @@
 import test from 'zora';
 import where from '../src/builders/where';
 import {compositeNode} from '../src/lib/nodes';
+import {nodeSymbol} from "../src/builders/clause";
 
 test('where builder: create a chainable delegation', t => {
 	const mainBuilder = () => {
-		const whereNodes = compositeNode();
 		return {
+			[nodeSymbol]:{where:compositeNode()},
 			foo() {
 				return this;
 			},
 			build() {
 				const queryNode = compositeNode();
-				queryNode.add('build >', whereNodes);
+				queryNode.add('build >', this[nodeSymbol].where);
 				return queryNode.build();
 			},
-			where: where(whereNodes)
+			where
 		};
 	};
 

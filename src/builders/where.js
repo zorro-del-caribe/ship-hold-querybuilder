@@ -1,5 +1,6 @@
 import proxy from '../lib/proxy-condition';
+import {nodeSymbol} from './clause';
 
-export default nodes => function (...args) {
-	return proxy(this, nodes)(...args);
-};
+export default function (...args) {
+	return proxy(this, this[nodeSymbol].where)(...args);
+}
