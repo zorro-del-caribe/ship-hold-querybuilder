@@ -6,7 +6,8 @@
   "scripts": {
     "xo": "xo ./src/**/*.js",
     "build": "rollup -c ./rollup/build.js",
-    "test": "rollup -c ./rollup/test.js --output.format cjs | tee ./test/dist/debug.js | node"
+    "test": "rollup -c ./rollup/test.js --output.format cjs | tee ./test/dist/debug.js | node",
+    "test:ci": "rollup -c ./rollup/test.js --output.format cjs | node | tap-set-exit"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
     "rollup": "^0.56.2",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-node-resolve": "^3.0.3",
+    "tap-set-exit": "^1.1.1",
     "xo": "^0.20.3",
     "zora": "^2.0.0"
   }
