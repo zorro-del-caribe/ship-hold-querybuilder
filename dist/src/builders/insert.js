@@ -16,7 +16,7 @@ const proto = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('into', 'field', 'returning'));
-export default (map = {}) => {
+export const insert = (map = {}) => {
     const instance = Object.create(proto, {
         [nodeSymbol]: {
             value: {

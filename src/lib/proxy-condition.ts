@@ -1,12 +1,12 @@
-import conditions, {ConditionsBuilder, SQLComparisonOperator} from '../builders/conditions';
+import {ConditionsBuilder, condition, SQLComparisonOperator} from '../builders/conditions';
 import {Buildable, CompositeNode, compositeNode, NodeParam} from './nodes';
 
 // Create a condition builder proxy which will be revoked as soon as the main builder is called
-export default (mainBuilder: Buildable, nodes: CompositeNode) => (leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder => {
+export default <T extends Buildable>(mainBuilder: T, nodes: CompositeNode) => (leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<T> & T => {
     const conditionNodes = compositeNode();
-    const delegate = conditions(conditionNodes)
+    const delegate = condition<T>(conditionNodes)
         .if(leftOperand, operator, rightOperand);
-    const revocable = Proxy.revocable<ConditionsBuilder>(delegate, {
+    const revocable = Proxy.revocable<ConditionsBuilder<T> & T>(delegate, {
         get(target, property) {
             if (target[property] && property !== 'build') {
                 return target[property];

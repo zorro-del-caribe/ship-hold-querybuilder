@@ -5,7 +5,7 @@ export default {
     output: [{
         file: './dist/bundle/ship-hold-querybuilder.js',
         format: 'iife',
-        name: 'smartTableSort',
+        name: 'ShipHoldQuery',
         sourcemap: true
     }, {
         file: './dist/bundle/ship-hold-querybuilder.es.js',

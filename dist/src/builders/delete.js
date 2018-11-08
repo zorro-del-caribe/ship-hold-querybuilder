@@ -19,7 +19,7 @@ const proto = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('table', 'using'));
-export default (tableName) => {
+export const del = (tableName) => {
     const instance = Object.create(proto, {
         [nodeSymbol]: {
             value: {

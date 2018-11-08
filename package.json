@@ -1,6 +1,6 @@
 {
   "name": "ship-hold-querybuilder",
-  "version": "2.0.0-1",
+  "version": "2.0.0-2",
   "description": "sql query builder for ship-hold data access framework",
   "main": "./dist/bundle/index",
   "module": "./dist/bundle/module.js",

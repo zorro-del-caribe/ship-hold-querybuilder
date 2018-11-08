@@ -1,5 +1,5 @@
 import test from 'zora';
-import insert from '../dist/src/builders/insert';
+import {insert} from '../dist/src';
 
 test('insert builder: insert values as defined by value', t => {
     const actual = insert()

@@ -1,8 +1,8 @@
 import test from 'zora';
-import conditions from '../dist/src/builders/conditions';
+import {condition} from '../dist/src';
 
 test('condition builder: use provided operator', t => {
-    const actual = conditions()
+    const actual = condition()
         .if('foo', '<=', 'bar')
         .build().text;
     const expected = '"foo" <= \'bar\'';
@@ -10,7 +10,7 @@ test('condition builder: use provided operator', t => {
 });
 
 test('condition builder: use default operator', t => {
-    const actual = conditions()
+    const actual = condition()
         .if('foo', 'bar')
         .build().text;
     const expected = '"foo" = \'bar\'';
@@ -18,7 +18,7 @@ test('condition builder: use default operator', t => {
 });
 
 test('condition builder: combine conditions', t => {
-    const actual = conditions()
+    const actual = condition()
         .if('foo', '<=', 'bar')
         .and('blah.what', 'woot')
         .or('age', '<=', 66)
@@ -28,7 +28,7 @@ test('condition builder: combine conditions', t => {
 });
 
 test('condition builder: combine conditions with params', t => {
-    const actual = conditions()
+    const actual = condition()
         .if('foo', '<=', '$bar')
         .and('blah.what', '$what')
         .or('age', '<=', '$age')
@@ -38,11 +38,11 @@ test('condition builder: combine conditions with params', t => {
 });
 
 test('condition builder: use subquery', t => {
-    const subq = conditions()
+    const subq = condition()
         .if('foo', 'bar')
         .and('bar', '>', 4);
 
-    const actual = conditions()
+    const actual = condition()
         .if('wat', 'blah')
         .or(subq)
         .build().text;
@@ -52,11 +52,11 @@ test('condition builder: use subquery', t => {
 });
 
 test('condition builder: sub query with params', t => {
-    const subq = conditions()
+    const subq = condition()
         .if('foo', 'bar')
         .and('bar', '>', '$bar');
 
-    const actual = conditions()
+    const actual = condition()
         .if('wat', '$wat')
         .or(subq)
         .build({bar: 4, wat: 'blah'});
@@ -67,7 +67,7 @@ test('condition builder: sub query with params', t => {
 });
 
 test('condition builder: support object as json', t => {
-    const actual = conditions()
+    const actual = condition()
         .if('jsondoc', '@>', {foo: 'bar'})
         .build();
 

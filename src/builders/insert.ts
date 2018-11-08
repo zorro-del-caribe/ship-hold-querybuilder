@@ -4,8 +4,7 @@ import {clauseMixin, FieldClause, IntoClause, nodeSymbol, ReturningClause} from 
 
 type WithIntoFieldReturningClause = IntoClause & FieldClause & ReturningClause;
 
-
-interface InsertBuilder extends WithIntoFieldReturningClause, Buildable {
+export interface InsertBuilder extends WithIntoFieldReturningClause, Buildable {
     value: <T>(prop: string, value: T) => InsertBuilder;
 }
 
@@ -25,7 +24,7 @@ const proto = Object.assign({
     }
 }, clauseMixin<WithIntoFieldReturningClause>('into', 'field', 'returning'));
 
-export default (map = {}): InsertBuilder => {
+export const insert = (map = {}): InsertBuilder => {
     const instance = Object.create(proto, {
         [nodeSymbol]: {
             value: {

@@ -1,16 +1,20 @@
-import { Buildable } from '../lib/nodes';
-export interface SelectBuilder extends Buildable {
-    join(): any;
-    leftJoin(): any;
-    rightJoin(): any;
-    fullJoin(): any;
-    on(): any;
-    orderBy(): any;
-    limit(): any;
-    noop(): any;
-    where(): any;
-    from(): any;
-    select(): any;
+import { Buildable, NodeParam } from '../lib/nodes';
+import { FromClause } from './clause';
+import { ConditionsBuilder, SQLComparisonOperator } from './conditions';
+export declare const enum SortDirection {
+    ASC = "ASC",
+    DESC = "DESC"
 }
-declare const _default: (...args: any[]) => any;
-export default _default;
+export interface SelectBuilder extends Buildable, FromClause {
+    join(table: string): SelectBuilder;
+    leftJoin(table: string): SelectBuilder;
+    rightJoin(table: string): SelectBuilder;
+    fullJoin(table: string): SelectBuilder;
+    on(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): SelectBuilder;
+    orderBy(column: string, direction?: SortDirection): SelectBuilder;
+    limit(limit: number, offset?: number): SelectBuilder;
+    noop(): SelectBuilder;
+    where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): ConditionsBuilder<SelectBuilder> & SelectBuilder;
+    select(...params: NodeParam<any>[]): SelectBuilder;
+}
+export declare const select: (...args: NodeParam<any>[]) => SelectBuilder;

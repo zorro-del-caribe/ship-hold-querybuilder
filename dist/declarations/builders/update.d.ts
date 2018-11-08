@@ -1,10 +1,10 @@
-import { Buildable } from '../lib/nodes';
+import { Buildable, NodeParam } from '../lib/nodes';
 import { FieldClause, IntoClause, ReturningClause } from './clause';
-import { ConditionsBuilder } from './conditions';
+import { ConditionsBuilder, SQLComparisonOperator } from './conditions';
 declare type WithReturningFromTable = IntoClause & FieldClause & ReturningClause;
-interface UpdateBuilder extends WithReturningFromTable, Buildable {
-    where: ConditionsBuilder;
+export interface UpdateBuilder extends WithReturningFromTable, Buildable {
+    where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand?: NodeParam<any>): ConditionsBuilder<UpdateBuilder> & UpdateBuilder;
     set<T>(prop: string, value: T): UpdateBuilder;
 }
-declare const _default: (tableName: string) => UpdateBuilder;
-export default _default;
+export declare const update: (tableName: string) => UpdateBuilder;
+export {};

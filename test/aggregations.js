@@ -1,6 +1,5 @@
 import test from 'zora';
-import select from '../dist/src/builders/select';
-import {count} from '../dist/src/lib/aggregations';
+import {select, count} from '../dist/src';
 
 test('select a count', t => {
     const actual = select(count('*'))

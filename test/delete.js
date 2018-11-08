@@ -1,5 +1,5 @@
 import test from 'zora';
-import del from '../dist/src/builders/delete';
+import {delete as del} from '../dist/src';
 
 test('basic delete', t => {
     const actual = del('users')

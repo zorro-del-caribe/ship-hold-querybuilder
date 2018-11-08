@@ -1,17 +1,5 @@
-var smartTableSort = (function (exports) {
+var ShipHoldQuery = (function (exports) {
 'use strict';
-
-const aggregateFunc = (fn) => (field, label = fn) => ({ value: field, as: label, fn: fn.toUpperCase() });
-const count = aggregateFunc('count');
-const avg = aggregateFunc('avg');
-const sum = aggregateFunc('sum');
-
-
-var aggregations = Object.freeze({
-	count: count,
-	avg: avg,
-	sum: sum
-});
 
 const fluentMethod = (fn) => function (...args) {
     fn.bind(this)(...args);
@@ -179,32 +167,37 @@ const compositeNode = ({ separator = ' ' } = {
     separator: { value: separator }
 });
 
-
-var nodeFactories = Object.freeze({
-	identityNode: identityNode,
-	valueNode: valueNode,
-	pointerNode: pointerNode,
-	expressionNode: expressionNode,
-	compositeNode: compositeNode
-});
-
-var SQLComparisonOperator;
 (function (SQLComparisonOperator) {
     SQLComparisonOperator["EQUAL"] = "=";
     SQLComparisonOperator["LOWER_THAN"] = "<";
     SQLComparisonOperator["LOWER_THAN_OR_EQUAL"] = "<=";
     SQLComparisonOperator["GREATER_THAN"] = ">";
     SQLComparisonOperator["GREATER_THAN_OR_EQUAL"] = ">=";
-})(SQLComparisonOperator || (SQLComparisonOperator = {}));
-var conditions = (conditionNodes = compositeNode()) => {
+    SQLComparisonOperator["NOT_EQUAL"] = "<>";
+    SQLComparisonOperator["IS"] = "IS";
+    SQLComparisonOperator["IS_NOT"] = "IS NOT";
+    SQLComparisonOperator["BETWEEN"] = "BETWEEN";
+    SQLComparisonOperator["NOT_BETWEEN"] = "NOT BETWEEN";
+    SQLComparisonOperator["BETWEEN_SYMETRIC"] = "BETWEEN SYMETRIC";
+    SQLComparisonOperator["NOT_BETWEEN_SYMETRIC"] = "NOT BETWEEN SYMETRIC";
+    SQLComparisonOperator["IS_DISTINCT"] = "IS DISTINCT";
+    SQLComparisonOperator["IS_NOT_DISTINCT"] = "IS NOT DISTINCT";
+    SQLComparisonOperator["LIKE"] = "LIKE";
+    SQLComparisonOperator["ILIKE"] = "ILIKE";
+    SQLComparisonOperator["CONTAINS"] = "@>";
+    SQLComparisonOperator["IS_CONTAINED_BY"] = "<@";
+    SQLComparisonOperator["OVERLAP"] = "&&";
+    SQLComparisonOperator["CONCATENATE"] = "||";
+})(exports.SQLComparisonOperator || (exports.SQLComparisonOperator = {}));
+const condition = (conditionNodes = compositeNode()) => {
     return {
-        or(...args) {
+        or(leftOperand, operator, rightOperand) {
             conditionNodes.add(identityNode('OR'));
-            return this.if(...args);
+            return this.if(leftOperand, operator, rightOperand);
         },
-        and(...args) {
+        and(leftOperand, operator, rightOperand) {
             conditionNodes.add(identityNode('AND'));
-            return this.if(...args);
+            return this.if(leftOperand, operator, rightOperand);
         },
         if: fluentMethod((leftOperand, operator, rightOperand) => {
             const leftOperandNode = isBuildable(leftOperand) ?
@@ -238,7 +231,7 @@ var conditions = (conditionNodes = compositeNode()) => {
 // Create a condition builder proxy which will be revoked as soon as the main builder is called
 var proxy = (mainBuilder, nodes) => (leftOperand, operator, rightOperand) => {
     const conditionNodes = compositeNode();
-    const delegate = conditions(conditionNodes)
+    const delegate = condition(conditionNodes)
         .if(leftOperand, operator, rightOperand);
     const revocable = Proxy.revocable(delegate, {
         get(target, property) {
@@ -281,6 +274,10 @@ const joinFunc = (joinType) => function (table, leftOperand, rightOperand) {
     this[nodeSymbol].join.add(identityNode(joinType), node);
     return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
 };
+(function (SortDirection) {
+    SortDirection["ASC"] = "ASC";
+    SortDirection["DESC"] = "DESC";
+})(exports.SortDirection || (exports.SortDirection = {}));
 const proto = Object.assign({
     join: joinFunc('JOIN'),
     leftJoin: joinFunc('LEFT JOIN'),
@@ -328,7 +325,7 @@ const proto = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('from', 'select'));
-var select = (...args) => {
+const select = (...args) => {
     const nodes = {
         orderBy: compositeNode({ separator: ', ' }),
         limit: compositeNode(),
@@ -372,7 +369,7 @@ const proto$1 = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('returning', 'from', 'table'));
-var update = (tableName) => {
+const update = (tableName) => {
     const instance = Object.create(proto$1, {
         [nodeSymbol]: {
             value: {
@@ -402,7 +399,7 @@ const proto$2 = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('into', 'field', 'returning'));
-var insert = (map = {}) => {
+const insert = (map = {}) => {
     const instance = Object.create(proto$2, {
         [nodeSymbol]: {
             value: {
@@ -437,7 +434,7 @@ const proto$3 = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('table', 'using'));
-var _delete = (tableName) => {
+const del = (tableName) => {
     const instance = Object.create(proto$3, {
         [nodeSymbol]: {
             value: {
@@ -453,16 +450,24 @@ var _delete = (tableName) => {
     return instance;
 };
 
-const nodes = nodeFactories;
-const aggregate = aggregations;
+const aggregateFunc = (fn) => (field, label = fn) => ({ value: field, as: label, fn: fn.toUpperCase() });
+const count = aggregateFunc('count');
+const avg = aggregateFunc('avg');
+const sum = aggregateFunc('sum');
 
-exports.nodes = nodes;
-exports.aggregate = aggregate;
-exports.condition = conditions;
+exports.delete = del;
+exports.condition = condition;
 exports.select = select;
 exports.update = update;
 exports.insert = insert;
-exports.delete = _delete;
+exports.count = count;
+exports.avg = avg;
+exports.sum = sum;
+exports.identityNode = identityNode;
+exports.valueNode = valueNode;
+exports.pointerNode = pointerNode;
+exports.expressionNode = expressionNode;
+exports.compositeNode = compositeNode;
 
 return exports;
 

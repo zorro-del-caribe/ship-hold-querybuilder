@@ -8,6 +8,11 @@ const joinFunc = (joinType) => function (table, leftOperand, rightOperand) {
     this[nodeSymbol].join.add(identityNode(joinType), node);
     return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
 };
+export var SortDirection;
+(function (SortDirection) {
+    SortDirection["ASC"] = "ASC";
+    SortDirection["DESC"] = "DESC";
+})(SortDirection || (SortDirection = {}));
 const proto = Object.assign({
     join: joinFunc('JOIN'),
     leftJoin: joinFunc('LEFT JOIN'),
@@ -55,7 +60,7 @@ const proto = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('from', 'select'));
-export default (...args) => {
+export const select = (...args) => {
     const nodes = {
         orderBy: compositeNode({ separator: ', ' }),
         limit: compositeNode(),

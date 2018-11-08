@@ -1,6 +1,5 @@
 import test from 'zora';
-import update from '../dist/src/builders/update';
-import select from '../dist/src/builders/select';
+import {select, update} from '../dist/src';
 
 test('basic update', t => {
     const actual = update('users')

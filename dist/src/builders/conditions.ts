@@ -13,26 +13,45 @@ export const enum SQLComparisonOperator {
     LOWER_THAN = '<',
     LOWER_THAN_OR_EQUAL = '<=',
     GREATER_THAN = '>',
-    GREATER_THAN_OR_EQUAL = '>='
+    GREATER_THAN_OR_EQUAL = '>=',
+    NOT_EQUAL = '<>',
+    IS = 'IS',
+    IS_NOT = 'IS NOT',
+    BETWEEN = 'BETWEEN',
+    NOT_BETWEEN = 'NOT BETWEEN',
+    BETWEEN_SYMETRIC = 'BETWEEN SYMETRIC',
+    NOT_BETWEEN_SYMETRIC = 'NOT BETWEEN SYMETRIC',
+    IS_DISTINCT = 'IS DISTINCT',
+    IS_NOT_DISTINCT = 'IS NOT DISTINCT',
+    LIKE = 'LIKE',
+    ILIKE = 'ILIKE',
+    CONTAINS = '@>',
+    IS_CONTAINED_BY = '<@',
+    OVERLAP = '&&',
+    CONCATENATE = '||'
 }
 
-export interface ConditionsBuilder extends Buildable {
-    or(...args: NodeParam<any>[]): ConditionsBuilder;
-
-    and(...args: NodeParam<any>[]): ConditionsBuilder;
-
-    if(leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator, rightOperand?: NodeParam<any>): ConditionsBuilder;
+export interface ConditionFunction<T> {
+    (leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): ConditionsBuilder<T> & T;
 }
 
-export default (conditionNodes: CompositeNode = compositeNode()): ConditionsBuilder => {
+export interface ConditionsBuilder<T> extends Buildable {
+    or: ConditionFunction<T>;
+
+    and: ConditionFunction<T>;
+
+    if: ConditionFunction<T>;
+}
+
+export const condition = <T>(conditionNodes: CompositeNode = compositeNode()): ConditionsBuilder<T> => {
     return {
-        or(...args: NodeParam<any>[]) {
+        or(this: ConditionsBuilder<T>, leftOperand, operator, rightOperand) {
             conditionNodes.add(identityNode('OR'));
-            return this.if(...args);
+            return this.if(leftOperand, operator, rightOperand);
         },
-        and(...args: NodeParam<any>[]) {
+        and(this: ConditionsBuilder<T>, leftOperand, operator, rightOperand) {
             conditionNodes.add(identityNode('AND'));
-            return this.if(...args);
+            return this.if(leftOperand, operator, rightOperand);
         },
         if: fluentMethod((leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator, rightOperand ?: NodeParam<any>) => {
             const leftOperandNode = isBuildable(leftOperand) ?
@@ -57,7 +76,7 @@ export default (conditionNodes: CompositeNode = compositeNode()): ConditionsBuil
                 conditionNodes.add(whereNode);
             }
         }),
-        build(params = {}, offset = 1) {
+        build(this: ConditionsBuilder<T>, params = {}, offset = 1) {
             return conditionNodes.build(params, offset);
         }
     };

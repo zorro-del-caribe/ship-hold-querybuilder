@@ -1,5 +1,5 @@
 import test from 'zora';
-import select from '../dist/src/builders/select';
+import {select} from '../dist/src';
 
 test('select builder: select given columns from a table', t => {
     const actual = select('foo', 'bar')

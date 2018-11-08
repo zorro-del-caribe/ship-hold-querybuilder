@@ -1,10 +1,10 @@
-import { Buildable } from '../lib/nodes';
+import { Buildable, NodeParam } from '../lib/nodes';
 import { TableClause, UsingClause } from './clause';
-import { ConditionsBuilder } from './conditions';
+import { ConditionsBuilder, SQLComparisonOperator } from './conditions';
 declare type WithTableUsingClause = TableClause & UsingClause;
-interface DeleteBuilder extends WithTableUsingClause, Buildable {
-    where: ConditionsBuilder;
+export interface DeleteBuilder extends WithTableUsingClause, Buildable {
+    where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand?: NodeParam<any>): ConditionsBuilder<DeleteBuilder> & DeleteBuilder;
     from(...args: any[]): DeleteBuilder;
 }
-declare const _default: (tableName: string) => DeleteBuilder;
-export default _default;
+export declare const del: (tableName: string) => DeleteBuilder;
+export {};

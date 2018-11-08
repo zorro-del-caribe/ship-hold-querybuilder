@@ -1,6 +1,6 @@
 import test from 'zora';
+import {compositeNode} from '../dist/src';
 import where from '../dist/src/builders/where';
-import {compositeNode} from '../dist/src/lib/nodes';
 import {nodeSymbol} from '../dist/src/builders/clause';
 
 test('where builder: create a chainable delegation', t => {

@@ -10,38 +10,41 @@ import {
 } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
 import {fluentMethod, identity, isSubQuery} from '../lib/util';
-import {clauseMixin, nodeSymbol} from './clause';
+import {clauseMixin, FromClause, nodeSymbol} from './clause';
 import where from './where';
-import {SQLComparisonOperator} from './conditions';
+import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
 
-const joinFunc = (joinType: string) => function (table: string, leftOperand: NodeParam<any>, rightOperand: NodeParam<any>) {
+const joinFunc = (joinType: string) => function (this: SelectBuilder, table: string, leftOperand: NodeParam<any>, rightOperand: NodeParam<any>) {
     const node: SQLNode<any> = isSubQuery(table) ? expressionNode(table) : pointerNode(table); // todo
     this[nodeSymbol].join.add(identityNode(joinType), node);
     return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
 };
 
-export interface SelectBuilder extends Buildable {
-    join();
+export const enum SortDirection {
+    ASC = 'ASC',
+    DESC = 'DESC'
+}
 
-    leftJoin();
+export interface SelectBuilder extends Buildable, FromClause {
+    join(table: string): SelectBuilder;
 
-    rightJoin();
+    leftJoin(table: string): SelectBuilder;
 
-    fullJoin();
+    rightJoin(table: string): SelectBuilder;
 
-    on();
+    fullJoin(table: string): SelectBuilder;
 
-    orderBy();
+    on(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): SelectBuilder;
 
-    limit();
+    orderBy(column: string, direction?: SortDirection): SelectBuilder;
 
-    noop();
+    limit(limit: number, offset?: number): SelectBuilder;
 
-    where();
+    noop(): SelectBuilder;
 
-    from();
+    where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand ?: NodeParam<any>): ConditionsBuilder<SelectBuilder> & SelectBuilder;
 
-    select();
+    select(...params: NodeParam<any>[]): SelectBuilder;
 }
 
 const proto = Object.assign({
@@ -94,7 +97,7 @@ const proto = Object.assign({
     }
 }, clauseMixin('from', 'select'));
 
-export default (...args) => {
+export const select = (...args: NodeParam<any>[]): SelectBuilder => {
     const nodes = {
         orderBy: compositeNode({separator: ', '}),
         limit: compositeNode(),

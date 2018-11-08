@@ -29,7 +29,7 @@ const proto = Object.assign({
         return queryNode.build(params);
     }
 }, clauseMixin('returning', 'from', 'table'));
-export default (tableName) => {
+export const update = (tableName) => {
     const instance = Object.create(proto, {
         [nodeSymbol]: {
             value: {

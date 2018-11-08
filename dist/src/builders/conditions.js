@@ -7,16 +7,31 @@ export var SQLComparisonOperator;
     SQLComparisonOperator["LOWER_THAN_OR_EQUAL"] = "<=";
     SQLComparisonOperator["GREATER_THAN"] = ">";
     SQLComparisonOperator["GREATER_THAN_OR_EQUAL"] = ">=";
+    SQLComparisonOperator["NOT_EQUAL"] = "<>";
+    SQLComparisonOperator["IS"] = "IS";
+    SQLComparisonOperator["IS_NOT"] = "IS NOT";
+    SQLComparisonOperator["BETWEEN"] = "BETWEEN";
+    SQLComparisonOperator["NOT_BETWEEN"] = "NOT BETWEEN";
+    SQLComparisonOperator["BETWEEN_SYMETRIC"] = "BETWEEN SYMETRIC";
+    SQLComparisonOperator["NOT_BETWEEN_SYMETRIC"] = "NOT BETWEEN SYMETRIC";
+    SQLComparisonOperator["IS_DISTINCT"] = "IS DISTINCT";
+    SQLComparisonOperator["IS_NOT_DISTINCT"] = "IS NOT DISTINCT";
+    SQLComparisonOperator["LIKE"] = "LIKE";
+    SQLComparisonOperator["ILIKE"] = "ILIKE";
+    SQLComparisonOperator["CONTAINS"] = "@>";
+    SQLComparisonOperator["IS_CONTAINED_BY"] = "<@";
+    SQLComparisonOperator["OVERLAP"] = "&&";
+    SQLComparisonOperator["CONCATENATE"] = "||";
 })(SQLComparisonOperator || (SQLComparisonOperator = {}));
-export default (conditionNodes = compositeNode()) => {
+export const condition = (conditionNodes = compositeNode()) => {
     return {
-        or(...args) {
+        or(leftOperand, operator, rightOperand) {
             conditionNodes.add(identityNode('OR'));
-            return this.if(...args);
+            return this.if(leftOperand, operator, rightOperand);
         },
-        and(...args) {
+        and(leftOperand, operator, rightOperand) {
             conditionNodes.add(identityNode('AND'));
-            return this.if(...args);
+            return this.if(leftOperand, operator, rightOperand);
         },
         if: fluentMethod((leftOperand, operator, rightOperand) => {
             const leftOperandNode = isBuildable(leftOperand) ?

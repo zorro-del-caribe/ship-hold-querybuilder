@@ -2,12 +2,12 @@ import {Buildable, compositeNode, NodeParam, pointerNode, valueNode} from '../li
 import {fluentMethod} from '../lib/util';
 import where from './where';
 import {clauseMixin, FieldClause, IntoClause, nodeSymbol, ReturningClause} from './clause';
-import {ConditionsBuilder} from './conditions';
+import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
 
 type WithReturningFromTable = IntoClause & FieldClause & ReturningClause;
 
-interface UpdateBuilder extends WithReturningFromTable, Buildable {
-    where: ConditionsBuilder;
+export interface UpdateBuilder extends WithReturningFromTable, Buildable {
+    where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<UpdateBuilder> & UpdateBuilder;
 
     set<T>(prop: string, value: T): UpdateBuilder;
 }
@@ -46,7 +46,7 @@ const proto = Object.assign({
     }
 }, clauseMixin<WithReturningFromTable>('returning', 'from', 'table'));
 
-export default (tableName: string): UpdateBuilder => {
+export const update = (tableName: string): UpdateBuilder => {
     const instance = Object.create(proto, {
         [nodeSymbol]: {
             value: {
