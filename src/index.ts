@@ -1,5 +1,5 @@
-import * as aggregations from './lib/aggregations'
-import * as nodeFactories from './lib/nodes'
+import * as aggregations from './lib/aggregations';
+import * as nodeFactories from './lib/nodes';
 
 export {default as condition} from './builders/conditions';
 export {default as select} from './builders/select';

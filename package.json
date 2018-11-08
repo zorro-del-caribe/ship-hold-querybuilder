@@ -2,13 +2,21 @@
   "name": "ship-hold-querybuilder",
   "version": "2.0.0-1",
   "description": "sql query builder for ship-hold data access framework",
-  "main": "./dist/index",
+  "main": "./dist/bundle/index",
+  "module": "./dist/bundle/module.js",
+  "types": "./dist/declarations/index.d.ts",
   "scripts": {
-    "xo": "xo ./src/**/*.js",
-    "build": "rollup -c ./rollup/build.js",
+    "build:clean": "rm -rf ./dist && mkdir -p ./dist/bundle ./dist/declarations && cp -r ./src ./dist/src",
+    "build:compile": "tsc",
+    "build:bundle": "rollup -c ./rollup/build.js && rollup -c ./rollup/cdn.js",
+    "build": "npm run build:clean && npm run build:compile && npm run build:bundle",
     "test": "rollup -c ./rollup/test.js --output.format cjs | tee ./test/dist/debug.js | node",
     "test:ci": "rollup -c ./rollup/test.js --output.format cjs | node | tap-set-exit"
   },
+  "files": [
+    "dist/bundle",
+    "dist/declarations"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/zorro-del-caribe/ship-hold-querybuilder.git"
@@ -32,7 +40,7 @@
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-node-resolve": "^3.0.3",
     "tap-set-exit": "^1.1.1",
-    "xo": "^0.20.3",
+    "typescript": "^3.1.3",
     "zora": "^2.0.0"
   }
 }
