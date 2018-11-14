@@ -1,5 +1,5 @@
 import test from 'zora';
-import {delete as del} from '../dist/src';
+import {delete as del, insert, select} from '../dist/src';
 
 test('basic delete', t => {
     const actual = del('users')
@@ -38,4 +38,21 @@ test('delete with the using clauses', t => {
         .text;
 
     t.equal(expected, actual);
+});
+
+test('delete builder: WITH clause', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', 21)
+        .orderBy('name')
+        .limit(10);
+
+    const actual = del('foo')
+        .with('bars',subq)
+        .where('bar','IN','"bars"')
+        .build().text;
+
+    const expected = `WITH "bars" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) DELETE FROM "foo" WHERE "bar" IN "bars"`;
+
+    t.equal(actual, expected);
 });

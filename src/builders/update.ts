@@ -1,8 +1,9 @@
 import {Buildable, compositeNode, NodeParam, pointerNode, valueNode} from '../lib/nodes';
-import {fluentMethod} from '../lib/util';
+import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import where from './where';
 import {clauseMixin, FieldClause, IntoClause, nodeSymbol, ReturningClause} from './clause';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
+import {withAsMixin} from './with';
 
 type WithReturningFromTable = IntoClause & FieldClause & ReturningClause;
 
@@ -24,27 +25,19 @@ const proto = Object.assign({
             [createSetNode(prop, value)];
         this[nodeSymbol].values.add(...setNodes);
     }),
-    build(params = {}) {
-        const {table, values, from, where, returning} = this[nodeSymbol];
+    build(params = {}, offset = 1) {
+        const {table, with: withC, values, from, where, returning} = this[nodeSymbol];
 
-        const queryNode = compositeNode()
-            .add('UPDATE', table, 'SET', values);
-
-        if (from.length > 0) {
-            queryNode.add('FROM', from);
-        }
-
-        if (where.length > 0) {
-            queryNode.add('WHERE', where);
-        }
-
-        if (returning.length > 0) {
-            queryNode.add('RETURNING', returning);
-        }
-
-        return queryNode.build(params);
+        const queryNode = compositeNode();
+        const add = eventuallyAddComposite(queryNode);
+        add(withC, 'with');
+        queryNode.add('UPDATE', table, 'SET', values);
+        add(from, 'from');
+        add(where, 'where');
+        add(returning, 'returning');
+        return queryNode.build(params, offset);
     }
-}, clauseMixin<WithReturningFromTable>('returning', 'from', 'table'));
+}, withAsMixin(), clauseMixin<WithReturningFromTable>('returning', 'from', 'table'));
 
 export const update = (tableName: string): UpdateBuilder => {
     const instance = Object.create(proto, {
@@ -54,7 +47,8 @@ export const update = (tableName: string): UpdateBuilder => {
                 table: compositeNode({separator: ', '}),
                 returning: compositeNode({separator: ', '}),
                 from: compositeNode({separator: ', '}),
-                values: compositeNode({separator: ', '})
+                values: compositeNode({separator: ', '}),
+                with: compositeNode({separator: ', '})
             }
         }
     });

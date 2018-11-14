@@ -212,3 +212,71 @@ test('select builder: combine joins', t => {
     const expected = 'SELECT * FROM "users" RIGHT JOIN "products" ON "users"."id" = "products"."userId" FULL JOIN "addresses" ON "users"."id" = "addresses"."userId"';
     t.equal(actual, expected);
 });
+
+test('select builder: WITH clause', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', 21)
+        .orderBy('name')
+        .limit(10);
+
+    const actual = select()
+        .with('majors', subq)
+        .from('majors')
+        .leftJoin('drinking_tastes')
+        .on('majors.id', '=', '"drinking_tastes"."user_id"')
+        .build().text;
+
+    const expected = `WITH "majors" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) SELECT * FROM "majors" LEFT JOIN "drinking_tastes" ON "majors"."id" = "drinking_tastes"."user_id"`;
+
+    t.equal(actual, expected);
+});
+
+test('select builder: with multiple WITH clause', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', 21)
+        .orderBy('name')
+        .limit(10);
+
+    const subq2 = select()
+        .from('drinking_tastes')
+        .where('user_id', '"majors"."id"');
+
+    const actual = select()
+        .with('majors', subq)
+        .with('drinks', subq2)
+        .from('majors')
+        .leftJoin('drinks')
+        .on('majors.id', '=', '"drinks"."user_id"')
+        .build().text;
+
+    const expected = `WITH "majors" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10), "drinks" AS (SELECT * FROM "drinking_tastes" WHERE "user_id" = "majors"."id") SELECT * FROM "majors" LEFT JOIN "drinks" ON "majors"."id" = "drinks"."user_id"`;
+
+    t.equal(actual, expected);
+});
+
+test('select builder: WITH clause with parameters', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', '$age')
+        .orderBy('name')
+        .limit(10);
+
+    const subq2 = select()
+        .from('drinking_tastes')
+        .where('user_id', '"majors"."id"')
+        .and('degree', '>', '$degree');
+
+    const actual = select()
+        .with('majors', subq)
+        .with('drinks', subq2)
+        .from('majors')
+        .leftJoin('drinks')
+        .on('majors.id', '=', '"drinks"."user_id"')
+        .build({age:21, degree:42});
+
+    const expected = `WITH "majors" AS (SELECT * FROM "users" WHERE "age" > $1 ORDER BY "name" LIMIT 10), "drinks" AS (SELECT * FROM "drinking_tastes" WHERE "user_id" = "majors"."id" AND "degree" > $2) SELECT * FROM "majors" LEFT JOIN "drinks" ON "majors"."id" = "drinks"."user_id"`;
+    t.equal(actual.text, expected);
+    t.deepEqual(actual.values, [21, 42]);
+});

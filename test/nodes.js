@@ -68,7 +68,7 @@ test('composite node: increment params', t => {
     const sn = nodes.compositeNode().add(n1, n2);
     const sn2 = nodes.compositeNode().add(n3, n4);
     const n = nodes.compositeNode().add(sn, sn2);
-    const actual = n.build({foo: 'foo', blah: 4, boom: 'boomval'});
+    const actual = n.build({foo: 'foo', blah: 4, boom: 'boomval'}, 1);
     t.equal(actual.text, '$1 = $2 $3');
     t.deepEqual(actual.values, ['foo', 'boomval', 4]);
 });

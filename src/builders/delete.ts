@@ -2,6 +2,8 @@ import {Buildable, compositeNode, NodeParam} from '../lib/nodes';
 import {clauseMixin, nodeSymbol, TableClause, UsingClause} from './clause';
 import where from './where';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
+import {eventuallyAddComposite} from '../lib/util';
+import {withAsMixin} from './with';
 
 type WithTableUsingClause = TableClause & UsingClause;
 
@@ -16,22 +18,17 @@ const proto = Object.assign({
     from(...args) {
         return this.table(...args);
     },
-    build(params = {}) {
-        const {table, using, where} = this[nodeSymbol];
-        const queryNode = compositeNode()
-            .add('DELETE FROM', table);
-
-        if (using.length > 0) {
-            queryNode.add('USING', using);
-        }
-
-        if (where.length > 0) {
-            queryNode.add('WHERE', where);
-        }
-
-        return queryNode.build(params);
+    build(params = {}, offset = 1) {
+        const {table, with: withc, using, where} = this[nodeSymbol];
+        const queryNode = compositeNode();
+        const add = eventuallyAddComposite(queryNode);
+        add(withc, 'with');
+        queryNode.add('DELETE FROM', table);
+        add(using, 'using');
+        add(where, 'where');
+        return queryNode.build(params, offset);
     }
-}, clauseMixin<WithTableUsingClause>('table', 'using'));
+}, withAsMixin(), clauseMixin<WithTableUsingClause>('table', 'using'));
 
 export const del = (tableName: string): DeleteBuilder => {
     const instance = Object.create(proto, {
@@ -39,7 +36,8 @@ export const del = (tableName: string): DeleteBuilder => {
             value: {
                 using: compositeNode(),
                 table: compositeNode(),
-                where: compositeNode()
+                where: compositeNode(),
+                with: compositeNode({separator: ', '})
             }
         }
     });

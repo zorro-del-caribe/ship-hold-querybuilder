@@ -9,7 +9,7 @@ export interface SQLQuery {
 }
 
 export interface Buildable {
-    build(params?: object, offset ?: number): SQLQuery;
+    build(params: object, offset: number): SQLQuery;
 }
 
 export interface SQLNodeValue<T> {
@@ -22,7 +22,7 @@ export interface SQLNode<T> extends Buildable {
     node: SQLNodeValue<T>
 }
 
-const buildStringMethodFactory = (fn: Function) => function (this: SQLNode<string>, params = {}, offset = 1): SQLQuery {
+const buildStringMethodFactory = (fn: Function) => function (this: SQLNode<string>, params, offset): SQLQuery {
     const {node: {value}} = this;
     const isParam = isParamRegexp.test(value);
     const text = isParam ? '$' + offset : fn(value);
@@ -56,7 +56,7 @@ const parseValue = (value: any): string => {
 };
 
 const pointerNodeProto = {
-    build(this: SQLNode<string>) {
+    build(this: SQLNode<string>, params, offset) {
         const {node} = this;
         let val;
         if (testWrap(node.value)) {
@@ -70,13 +70,13 @@ const pointerNodeProto = {
             val = parts.join('.');
         }
         const value = node.fn ? `${node.fn}(${val})` : val;
-        const text = node.as ? [value, 'AS', wrap(node.as)].join(' ') : value;
+        const text = node.as ? `${value} AS ${wrap(node.as)}` : value;
         return {text, values: []};
     }
 };
 
 const expressionNodeProto = {
-    build(this: SQLNode<Buildable>, params = {}, offset = 1) {
+    build(this: SQLNode<Buildable>, params, offset) {
         const {node} = this;
         const {text, values} = node.value.build(params, offset);
         const fullText = node.as ? [`(${text})`, 'AS', wrap(node.as)].join(' ') : `(${text})`;
@@ -127,7 +127,7 @@ const compositeNodeProto = {
         this.nodes.push(...nodeArgs);
         return this;
     },
-    build(params = {}, offset = 1) {
+    build(params, offset) {
         let off = offset;
         const text = [];
         const values = [];

@@ -1,11 +1,12 @@
 import { Buildable, NodeParam } from '../lib/nodes';
 import { FromClause } from './clause';
 import { ConditionsBuilder, SQLComparisonOperator } from './conditions';
+import { WithClause } from './with';
 export declare const enum SortDirection {
     ASC = "ASC",
     DESC = "DESC"
 }
-export interface SelectBuilder extends Buildable, FromClause {
+export interface SelectBuilder extends Buildable, FromClause, WithClause {
     join(table: string): SelectBuilder;
     leftJoin(table: string): SelectBuilder;
     rightJoin(table: string): SelectBuilder;

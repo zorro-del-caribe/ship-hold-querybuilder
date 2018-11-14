@@ -14,7 +14,8 @@ export const clauseMixin = <T extends object>(...names: string[]): T => {
         }
     };
     for (const name of names) {
-        api[name] = fluentMethod(function (this: T, ...args: NodeParam<any>[]) { //todo type
+        api[name] = fluentMethod(function (this: T, ...args: NodeParam<any>[]) {
+            // todo we might make a difference here between clauses which accept subqueries and other subqueries with mandatory aliases ex SELECT ... VS FROM ...
             this[nodeSymbol][name].add(...args.map(n => isSubQuery(n) ? expressionNode(n) : pointerNode(n)));
         });
     }

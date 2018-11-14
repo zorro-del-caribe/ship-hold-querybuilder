@@ -1,5 +1,5 @@
 import test from 'zora';
-import {condition} from '../dist/src';
+import {condition, select} from '../dist/src';
 
 test('condition builder: use provided operator', t => {
     const actual = condition()
@@ -75,3 +75,52 @@ test('condition builder: support object as json', t => {
 
     t.equal(actual.text, expected);
 });
+
+test('condition builder: support subquery as operand', t => {
+    const selection = select('*').from('bim');
+
+    const actual = condition()
+        .if('foo', 'IN', selection)
+        .build();
+
+    const expected = `"foo" IN (SELECT * FROM "bim")`;
+
+    t.equal(actual.text, expected);
+});
+
+test('condition builder: support subquery as operand with parameters', t => {
+    const selection = select('*')
+        .from('bim')
+        .limit('$limit');
+
+    const actual = condition()
+        .if('foo', 'IN', selection)
+        .and('wat', '$wat')
+        .build({limit: 10, wat: 42});
+
+    const expected = `"foo" IN (SELECT * FROM "bim" LIMIT $1) AND "wat" = $2`;
+
+    t.equal(actual.text, expected);
+    t.deepEqual(actual.values, [10, 42]);
+});
+
+test('condition builder: support multiple sub queries with parameters as operands', t=>{
+    const selection = select()
+        .from('bim')
+        .limit('$limit');
+
+    const selection2 = select()
+        .from('blah')
+        .limit('$limitBis');
+
+    const actual = condition()
+        .if('foo', 'IN', selection)
+        .and('foo','NOT IN',selection2 )
+        .build({limit: 10, limitBis: 6});
+
+    const expected = `"foo" IN (SELECT * FROM "bim" LIMIT $1) AND "foo" NOT IN (SELECT * FROM "blah" LIMIT $2)`;
+
+    t.equal(actual.text, expected);
+    t.deepEqual(actual.values, [10, 6]);
+});
+

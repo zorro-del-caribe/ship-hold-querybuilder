@@ -1,7 +1,7 @@
 import { identity, isBuildable, isSQLNodeValue } from './util';
 const STAR = '*';
 const isParamRegexp = /^\$/;
-const buildStringMethodFactory = (fn) => function (params = {}, offset = 1) {
+const buildStringMethodFactory = (fn) => function (params, offset) {
     const { node: { value } } = this;
     const isParam = isParamRegexp.test(value);
     const text = isParam ? '$' + offset : fn(value);
@@ -33,7 +33,7 @@ const parseValue = (value) => {
     }
 };
 const pointerNodeProto = {
-    build() {
+    build(params, offset) {
         const { node } = this;
         let val;
         if (testWrap(node.value)) {
@@ -48,12 +48,12 @@ const pointerNodeProto = {
             val = parts.join('.');
         }
         const value = node.fn ? `${node.fn}(${val})` : val;
-        const text = node.as ? [value, 'AS', wrap(node.as)].join(' ') : value;
+        const text = node.as ? `${value} AS ${wrap(node.as)}` : value;
         return { text, values: [] };
     }
 };
 const expressionNodeProto = {
-    build(params = {}, offset = 1) {
+    build(params, offset) {
         const { node } = this;
         const { text, values } = node.value.build(params, offset);
         const fullText = node.as ? [`(${text})`, 'AS', wrap(node.as)].join(' ') : `(${text})`;
@@ -90,7 +90,7 @@ const compositeNodeProto = {
         this.nodes.push(...nodeArgs);
         return this;
     },
-    build(params = {}, offset = 1) {
+    build(params, offset) {
         let off = offset;
         const text = [];
         const values = [];

@@ -9,10 +9,11 @@ import {
     NodeParam
 } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
-import {fluentMethod, identity, isSubQuery} from '../lib/util';
+import {fluentMethod, identity, isSubQuery, eventuallyAddComposite} from '../lib/util';
 import {clauseMixin, FromClause, nodeSymbol} from './clause';
 import where from './where';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
+import {withAsMixin, WithClause} from './with';
 
 const joinFunc = (joinType: string) => function (this: SelectBuilder, table: string, leftOperand: NodeParam<any>, rightOperand: NodeParam<any>) {
     const node: SQLNode<any> = isSubQuery(table) ? expressionNode(table) : pointerNode(table); // todo
@@ -25,7 +26,7 @@ export const enum SortDirection {
     DESC = 'DESC'
 }
 
-export interface SelectBuilder extends Buildable, FromClause {
+export interface SelectBuilder extends Buildable, FromClause, WithClause {
     join(table: string): SelectBuilder;
 
     leftJoin(table: string): SelectBuilder;
@@ -75,27 +76,20 @@ const proto = Object.assign({
     }),
     noop: fluentMethod(identity),
     where,
-    build(params = {}) {
+    build(params = {}, offset = 1) {
         const queryNode = compositeNode();
         const nodes = this[nodeSymbol];
-
-        const eventuallyAdd = (composite, keyWord) => {
-            if (composite.length > 0) {
-                queryNode.add(keyWord.toUpperCase(), composite);
-            }
-        };
-
-        eventuallyAdd(nodes.select, 'select');
-        eventuallyAdd(nodes.from, 'from');
-        if (nodes.join.length > 0) {
-            queryNode.add(nodes.join);
-        }
-        eventuallyAdd(nodes.where, 'where');
-        eventuallyAdd(nodes.orderBy, 'order by');
-        eventuallyAdd(nodes.limit, 'limit');
-        return queryNode.build(params);
+        const add = eventuallyAddComposite(queryNode);
+        add(nodes.with, 'with');
+        add(nodes.select, 'select');
+        add(nodes.from, 'from');
+        add(nodes.join);
+        add(nodes.where, 'where');
+        add(nodes.orderBy, 'order by');
+        add(nodes.limit, 'limit');
+        return queryNode.build(params, offset);
     }
-}, clauseMixin('from', 'select'));
+}, withAsMixin(), clauseMixin('from', 'select'));
 
 export const select = (...args: NodeParam<any>[]): SelectBuilder => {
     const nodes = {
@@ -104,7 +98,8 @@ export const select = (...args: NodeParam<any>[]): SelectBuilder => {
         join: compositeNode(),
         from: compositeNode({separator: ', '}),
         select: compositeNode({separator: ', '}),
-        where: compositeNode()
+        where: compositeNode(),
+        with: compositeNode({separator: ', '})
     };
 
     const instance = Object.create(proto, {[nodeSymbol]: {value: nodes}});

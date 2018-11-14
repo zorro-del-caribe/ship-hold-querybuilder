@@ -1,5 +1,5 @@
 import test from 'zora';
-import {insert} from '../dist/src';
+import {insert, select} from '../dist/src';
 
 test('insert builder: insert values as defined by value', t => {
     const actual = insert()
@@ -40,4 +40,21 @@ test('insert builder: use query params', t => {
 
     t.equal(actual.text, 'INSERT INTO "users" ( "foo", "age" ) VALUES ( $1, $2 )');
     t.deepEqual(actual.values, ['foo', 'blah']);
+});
+
+test('insert builder: WITH clause', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', 21)
+        .orderBy('name')
+        .limit(10);
+
+    const actual = insert({foo: 'bar'})
+        .into('blah')
+        .with('s', subq)
+        .build().text;
+
+    const expected = `WITH "s" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) INSERT INTO "blah" ( "foo" ) VALUES ( 'bar' )`;
+
+    t.equal(actual, expected);
 });

@@ -3,7 +3,7 @@ export interface SQLQuery {
     values: any[];
 }
 export interface Buildable {
-    build(params?: object, offset?: number): SQLQuery;
+    build(params: object, offset: number): SQLQuery;
 }
 export interface SQLNodeValue<T> {
     value: T;

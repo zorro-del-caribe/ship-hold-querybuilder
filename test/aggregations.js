@@ -6,5 +6,5 @@ test('select a count', t => {
         .from('users')
         .build();
 
-    t.equal(actual.text, 'SELECT COUNT(*) AS "count" FROM "users"');
+    t.equal(actual.text, 'SELECT count(*) AS "count" FROM "users"');
 });

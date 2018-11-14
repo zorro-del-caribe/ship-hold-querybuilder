@@ -82,3 +82,20 @@ test('update with a sub query', t => {
 
     t.equal(actual, expected);
 });
+
+test('update builder: WITH clause', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', 21)
+        .orderBy('name')
+        .limit(10);
+
+    const actual = update('foo')
+        .with('users',subq)
+        .set('drunk', true)
+        .build().text;
+
+    const expected = `WITH "users" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) UPDATE "foo" SET "drunk" = true`;
+
+    t.equal(actual, expected);
+});

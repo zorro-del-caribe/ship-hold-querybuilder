@@ -1,6 +1,7 @@
 import {compositeNode, identityNode, Buildable, valueNode} from '../lib/nodes';
-import {fluentMethod} from '../lib/util';
+import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import {clauseMixin, FieldClause, IntoClause, nodeSymbol, ReturningClause} from './clause';
+import {withAsMixin} from './with';
 
 type WithIntoFieldReturningClause = IntoClause & FieldClause & ReturningClause;
 
@@ -13,16 +14,16 @@ const proto = Object.assign({
         this.field(prop);
         this[nodeSymbol].values.add(value === undefined ? identityNode('DEFAULT') : valueNode(value));
     }),
-    build(params = {}) {
+    build(params = {}, offset = 1) {
         const queryNode = compositeNode();
-        const {into, field, values, returning} = this[nodeSymbol];
+        const add = eventuallyAddComposite(queryNode);
+        const {into, with: withc, field, values, returning} = this[nodeSymbol];
+        add(withc, 'with');
         queryNode.add('INSERT INTO', into, '(', field, ')', 'VALUES', '(', values, ')');
-        if (returning.length > 0) {
-            queryNode.add('RETURNING', returning);
-        }
-        return queryNode.build(params);
+        add(returning, 'returning');
+        return queryNode.build(params, offset);
     }
-}, clauseMixin<WithIntoFieldReturningClause>('into', 'field', 'returning'));
+}, withAsMixin(), clauseMixin<WithIntoFieldReturningClause>('into', 'field', 'returning'));
 
 export const insert = (map = {}): InsertBuilder => {
     const instance = Object.create(proto, {
@@ -31,7 +32,8 @@ export const insert = (map = {}): InsertBuilder => {
                 into: compositeNode({separator: ', '}),
                 field: compositeNode({separator: ', '}),
                 returning: compositeNode({separator: ', '}),
-                values: compositeNode({separator: ', '})
+                values: compositeNode({separator: ', '}),
+                with: compositeNode({separator: ', '})
             }
         }
     });

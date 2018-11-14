@@ -7,3 +7,4 @@ import './update';
 import './select';
 import './aggregations';
 import './clause';
+import './with';
