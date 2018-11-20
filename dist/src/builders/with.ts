@@ -1,12 +1,13 @@
 import {fluentMethod} from '../lib/util';
 import {nodeSymbol} from './clause';
-import {compositeNode, expressionNode, Buildable, pointerNode} from '..';
+import {compositeNode, expressionNode, pointerNode} from '../lib/nodes';
+import {Buildable} from '../lib/node-interfaces';
 
-export interface WithClause {
-    with(label: string, builder: Buildable): WithClause;
+export interface WithClause<T> {
+    with(label: string, builder: Buildable): T;
 }
 
-export const withAsMixin = (): WithClause => ({
+export const withAsMixin = <T>(): WithClause<T> => ({
     with: fluentMethod(function (label: string, builder: Buildable) {
         const n = this[nodeSymbol].with;
         const clause = compositeNode();

@@ -1,11 +1,12 @@
-import {Buildable, compositeNode, NodeParam, pointerNode, valueNode} from '../lib/nodes';
+import {compositeNode, pointerNode, valueNode} from '../lib/nodes';
 import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import where from './where';
-import {clauseMixin, FieldClause, IntoClause, nodeSymbol, ReturningClause} from './clause';
+import {clauseMixin, IntoClause, nodeSymbol, ReturningClause} from './clause';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
 import {withAsMixin} from './with';
+import {Buildable, NodeParam} from '../lib/node-interfaces';
 
-type WithReturningFromTable = IntoClause & FieldClause & ReturningClause;
+type WithReturningFromTable = IntoClause<UpdateBuilder> & ReturningClause<UpdateBuilder>;
 
 export interface UpdateBuilder extends WithReturningFromTable, Buildable {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<UpdateBuilder> & UpdateBuilder;
@@ -37,7 +38,7 @@ const proto = Object.assign({
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin(), clauseMixin<WithReturningFromTable>('returning', 'from', 'table'));
+}, withAsMixin<UpdateBuilder>(), clauseMixin<UpdateBuilder>('returning', 'from', 'table'));
 
 export const update = (tableName: string): UpdateBuilder => {
     const instance = Object.create(proto, {

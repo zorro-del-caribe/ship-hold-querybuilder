@@ -30,6 +30,38 @@ test('select builder: use column labels', t => {
     t.equal(actual, expected);
 });
 
+test('select builder: support subquery in the select clause without alias', t => {
+    const sq = select().from('blah');
+    const actual = select('foo', sq)
+        .from('bim')
+        .build().text;
+
+    t.equal(actual, 'SELECT "foo", (SELECT * FROM "blah") FROM "bim"');
+});
+
+test('select builder: support subquery in the select clause with alias', t => {
+    const sq = select().from('blah');
+    const actual = select('foo', {value: sq, as: 'blah'})
+        .from('bim')
+        .build().text;
+
+    t.equal(actual, 'SELECT "foo", (SELECT * FROM "blah") AS "blah" FROM "bim"');
+});
+
+test('select builder: support subquery in the select clause with parameters', t => {
+    const sq = select().from('blah').where('param', '$param1').noop();
+    const actual = select('foo', {value: sq, as: 'blah'})
+        .from('bim')
+        .where('params2', '$param2')
+        .build({
+            param1: 'value1',
+            param2: 'value2'
+        });
+
+    t.equal(actual.text, 'SELECT "foo", (SELECT * FROM "blah" WHERE "param" = $1) AS "blah" FROM "bim" WHERE "params2" = $2');
+    t.deepEqual(actual.values, ['value1', 'value2']);
+});
+
 test('select builder: use table labels', t => {
     const actual = select('foo')
         .from({value: 'users', as: 'u'})
@@ -188,6 +220,20 @@ test('select builder: inner join', t => {
     t.equal(actual.text, 'SELECT * FROM "users" JOIN "products" ON "users"."id" = "products"."id" AND "users"."id" = 4');
 });
 
+test('select builder: join with subquery', t => {
+
+    const sq = select().from('products');
+
+    const actual = select()
+        .from('users')
+        .join(sq)
+        .on('users.id', '"products"."id"')
+        .and('users.id', '=', 4)
+        .build();
+
+    t.equal(actual.text, 'SELECT * FROM "users" JOIN (SELECT * FROM "products") ON "users"."id" = "products"."id" AND "users"."id" = 4');
+});
+
 test('select builder: join with params', t => {
     const actual = select()
         .from('users')
@@ -274,7 +320,7 @@ test('select builder: WITH clause with parameters', t => {
         .from('majors')
         .leftJoin('drinks')
         .on('majors.id', '=', '"drinks"."user_id"')
-        .build({age:21, degree:42});
+        .build({age: 21, degree: 42});
 
     const expected = `WITH "majors" AS (SELECT * FROM "users" WHERE "age" > $1 ORDER BY "name" LIMIT 10), "drinks" AS (SELECT * FROM "drinking_tastes" WHERE "user_id" = "majors"."id" AND "degree" > $2) SELECT * FROM "majors" LEFT JOIN "drinks" ON "majors"."id" = "drinks"."user_id"`;
     t.equal(actual.text, expected);

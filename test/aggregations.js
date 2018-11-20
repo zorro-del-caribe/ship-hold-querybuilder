@@ -6,5 +6,13 @@ test('select a count', t => {
         .from('users')
         .build();
 
-    t.equal(actual.text, 'SELECT count(*) AS "count" FROM "users"');
+    t.equal(actual.text, 'SELECT count(*) FROM "users"');
+});
+
+test('select a count with alias', t => {
+    const actual = select({value: count('*'), as: 'foo'})
+        .from('users')
+        .build();
+
+    t.equal(actual.text, 'SELECT (count(*)) AS "foo" FROM "users"');
 });

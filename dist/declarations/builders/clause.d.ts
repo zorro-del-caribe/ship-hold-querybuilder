@@ -1,21 +1,22 @@
-import { NodeParam } from '../lib/nodes';
+import { CompositeNode, NodeParam } from '../lib/node-interfaces';
 export declare const nodeSymbol: unique symbol;
-export declare const clauseMixin: <T extends object>(...names: string[]) => T;
-export interface IntoClause {
-    into: (...args: NodeParam<any>[]) => IntoClause;
+interface Clause {
+    node(name: string, newNode?: CompositeNode): CompositeNode;
 }
-export interface ReturningClause {
-    returning: (...args: NodeParam<any>[]) => ReturningClause;
+export declare const clauseMixin: <T extends object>(...names: string[]) => T & Clause;
+export interface IntoClause<T> {
+    into: (...args: NodeParam<any>[]) => T;
 }
-export interface FromClause {
-    from: (...args: NodeParam<any>[]) => FromClause;
+export interface ReturningClause<T> {
+    returning: (...args: NodeParam<any>[]) => T;
 }
-export interface TableClause {
-    table: (...args: NodeParam<any>[]) => TableClause;
+export interface FromClause<T> {
+    from: (...args: NodeParam<any>[]) => T;
 }
-export interface FieldClause {
-    field: (...args: NodeParam<any>[]) => FieldClause;
+export interface TableClause<T> {
+    table: (...args: NodeParam<any>[]) => T;
 }
-export interface UsingClause {
-    using: (...args: NodeParam<any>[]) => UsingClause;
+export interface UsingClause<T> {
+    using: (...args: NodeParam<any>[]) => T;
 }
+export {};

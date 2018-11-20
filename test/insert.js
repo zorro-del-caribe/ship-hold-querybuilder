@@ -2,9 +2,8 @@ import test from 'zora';
 import {insert, select} from '../dist/src';
 
 test('insert builder: insert values as defined by value', t => {
-    const actual = insert()
-        .value('foo', 'bar')
-        .value('age', 4)
+    const actual = insert('foo', 'age')
+        .values({'foo': 'bar', age: 4})
         .into('users')
         .build().text;
     const expected = 'INSERT INTO "users" ( "foo", "age" ) VALUES ( \'bar\', 4 )';
@@ -20,10 +19,8 @@ test('insert builder: insert hash map value object', t => {
 });
 
 test('insert builder: fill with default if not value is provided', t => {
-    const actual = insert()
-        .value('foo')
-        .value('age', 4)
-        .value('bar')
+    const actual = insert('foo', 'age', 'bar')
+        .values({age: 4})
         .into('users')
         .build().text;
 
@@ -31,11 +28,20 @@ test('insert builder: fill with default if not value is provided', t => {
     t.equal(actual, expected);
 });
 
-test('insert builder: use query params', t => {
-    const actual = insert()
+test('insert builder: bulk update', t => {
+    const actual = insert('foo', 'bar')
         .into('users')
-        .value('foo', '$foo')
-        .value('age', '$age')
+        .values([{foo: 'foo1', bar: 1}, {foo: 'foo2', bar: 2}, {foo: 'foo3', bar: 3}])
+        .build().text;
+
+    const expected = `INSERT INTO "users" ( "foo", "bar" ) VALUES ( 'foo1', 1 ), ( 'foo2', 2 ), ( 'foo3', 3 )`;
+    t.equal(actual, expected);
+});
+
+test('insert builder: use query params', t => {
+    const actual = insert('foo', 'age')
+        .into('users')
+        .values({foo: '$foo', age: '$age'})
         .build({foo: 'foo', age: 'blah'});
 
     t.equal(actual.text, 'INSERT INTO "users" ( "foo", "age" ) VALUES ( $1, $2 )');

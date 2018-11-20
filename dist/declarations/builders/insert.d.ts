@@ -1,8 +1,10 @@
-import { Buildable } from '../lib/nodes';
-import { FieldClause, IntoClause, ReturningClause } from './clause';
-declare type WithIntoFieldReturningClause = IntoClause & FieldClause & ReturningClause;
+import { IntoClause, ReturningClause } from './clause';
+import { Buildable } from '../lib/node-interfaces';
+declare type WithIntoFieldReturningClause = IntoClause<InsertBuilder> & ReturningClause<InsertBuilder>;
 export interface InsertBuilder extends WithIntoFieldReturningClause, Buildable {
-    value: <T>(prop: string, value: T) => InsertBuilder;
+    readonly fields: string[];
+    values: (values: any[]) => InsertBuilder;
 }
-export declare const insert: (map?: {}) => InsertBuilder;
+declare type itemOrColumnDefinition = object | string;
+export declare const insert: (map: itemOrColumnDefinition, ...othersProps: string[]) => InsertBuilder;
 export {};

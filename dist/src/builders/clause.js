@@ -1,5 +1,4 @@
-import { expressionNode, pointerNode } from '../lib/nodes';
-import { fluentMethod, isSubQuery } from '../lib/util';
+import { fluentMethod, selectLikeExpression } from '../lib/util';
 export const nodeSymbol = Symbol('nodes');
 export const clauseMixin = (...names) => {
     const api = {
@@ -13,8 +12,7 @@ export const clauseMixin = (...names) => {
     };
     for (const name of names) {
         api[name] = fluentMethod(function (...args) {
-            // todo we might make a difference here between clauses which accept subqueries and other subqueries with mandatory aliases ex SELECT ... VS FROM ...
-            this[nodeSymbol][name].add(...args.map(n => isSubQuery(n) ? expressionNode(n) : pointerNode(n)));
+            this[nodeSymbol][name].add(...args.map(selectLikeExpression)); // Technically not all the clause would accept fromable
         });
     }
     return api;

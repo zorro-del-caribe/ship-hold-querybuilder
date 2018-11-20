@@ -6,5 +6,6 @@ import './delete';
 import './update';
 import './select';
 import './aggregations';
+import './operators';
 import './clause';
 import './with';

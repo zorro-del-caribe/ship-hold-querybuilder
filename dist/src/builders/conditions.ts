@@ -4,9 +4,9 @@ import {
     valueNode,
     pointerNode,
     identityNode,
-    CompositeNode, NodeParam, Buildable,
 } from '../lib/nodes';
 import {fluentMethod, isBuildable} from '../lib/util';
+import {Buildable, CompositeNode} from '../lib/node-interfaces';
 
 export const enum SQLComparisonOperator {
     EQUAL = '=',
@@ -32,7 +32,7 @@ export const enum SQLComparisonOperator {
 }
 
 export interface ConditionFunction<T> {
-    (leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): ConditionsBuilder<T> & T;
+    (leftOperand: any, operator ?: any, rightOperand?: any): ConditionsBuilder<T> & T;
 }
 
 export interface ConditionsBuilder<T> extends Buildable {
@@ -53,7 +53,7 @@ export const condition = <T>(conditionNodes: CompositeNode = compositeNode()): C
             conditionNodes.add(identityNode('AND'));
             return this.if(leftOperand, operator, rightOperand);
         },
-        if: fluentMethod((leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator, rightOperand ?: NodeParam<any>) => {
+        if: fluentMethod((leftOperand, operator, rightOperand) => {
             const leftOperandNode = isBuildable(leftOperand) ?
                 expressionNode(leftOperand) :
                 pointerNode(leftOperand);

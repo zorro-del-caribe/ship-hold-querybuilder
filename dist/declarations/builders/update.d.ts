@@ -1,7 +1,7 @@
-import { Buildable, NodeParam } from '../lib/nodes';
-import { FieldClause, IntoClause, ReturningClause } from './clause';
+import { IntoClause, ReturningClause } from './clause';
 import { ConditionsBuilder, SQLComparisonOperator } from './conditions';
-declare type WithReturningFromTable = IntoClause & FieldClause & ReturningClause;
+import { Buildable, NodeParam } from '../lib/node-interfaces';
+declare type WithReturningFromTable = IntoClause<UpdateBuilder> & ReturningClause<UpdateBuilder>;
 export interface UpdateBuilder extends WithReturningFromTable, Buildable {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand?: NodeParam<any>): ConditionsBuilder<UpdateBuilder> & UpdateBuilder;
     set<T>(prop: string, value: T): UpdateBuilder;

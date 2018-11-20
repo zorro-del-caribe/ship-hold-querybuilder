@@ -1,11 +1,11 @@
-import { compositeNode, valueNode, identityNode, pointerNode, expressionNode } from '../lib/nodes';
+import { compositeNode, valueNode, identityNode, pointerNode, } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
-import { fluentMethod, identity, isSubQuery, eventuallyAddComposite } from '../lib/util';
+import { fluentMethod, identity, eventuallyAddComposite, selectLikeExpression } from '../lib/util';
 import { clauseMixin, nodeSymbol } from './clause';
 import where from './where';
 import { withAsMixin } from './with';
 const joinFunc = (joinType) => function (table, leftOperand, rightOperand) {
-    const node = isSubQuery(table) ? expressionNode(table) : pointerNode(table); // todo
+    const node = selectLikeExpression(table);
     this[nodeSymbol].join.add(identityNode(joinType), node);
     return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
 };

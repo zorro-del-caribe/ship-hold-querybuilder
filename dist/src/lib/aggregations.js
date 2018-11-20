@@ -1,4 +1,6 @@
-const aggregateFunc = (fn) => (field, label = fn) => ({ value: field, as: label, fn });
+import { functionNode } from './nodes';
+const aggregateFunc = (fn) => (field) => functionNode(fn)
+    .add(field);
 export const count = aggregateFunc('count');
 export const avg = aggregateFunc('avg');
 export const sum = aggregateFunc('sum');

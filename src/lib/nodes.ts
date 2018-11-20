@@ -1,26 +1,18 @@
-import {identity, isBuildable, isSQLNodeValue} from './util';
+import {fluentMethod, identity, isBuildable, isFunctionNode, isSQLNodeValue} from './util';
+import {
+    SQLNode,
+    Buildable,
+    NodeParam,
+    CompositeNodeMember,
+    SQLNodeValue,
+    CompositeNodeFactoryInput,
+    FunctionNode,
+    CompositeNode,
+    SQLQuery
+} from './node-interfaces';
 
 const STAR = '*';
 const isParamRegexp = /^\$/;
-
-export interface SQLQuery {
-    text: string;
-    values: any[];
-}
-
-export interface Buildable {
-    build(params: object, offset: number): SQLQuery;
-}
-
-export interface SQLNodeValue<T> {
-    value: T;
-    as?: string;
-    fn?: string;
-}
-
-export interface SQLNode<T> extends Buildable {
-    node: SQLNodeValue<T>
-}
 
 const buildStringMethodFactory = (fn: Function) => function (this: SQLNode<string>, params, offset): SQLQuery {
     const {node: {value}} = this;
@@ -69,8 +61,7 @@ const pointerNodeProto = {
             }
             val = parts.join('.');
         }
-        const value = node.fn ? `${node.fn}(${val})` : val;
-        const text = node.as ? `${value} AS ${wrap(node.as)}` : value;
+        const text = node.as ? `${val} AS ${wrap(node.as)}` : val;
         return {text, values: []};
     }
 };
@@ -83,8 +74,6 @@ const expressionNodeProto = {
         return {text: fullText, values};
     }
 };
-
-export type NodeParam<T> = string | SQLNodeValue<T>;
 
 const identityNodeProto = {
     build: buildStringMethodFactory(identity)
@@ -102,16 +91,6 @@ export const identityNode = <T>(params: NodeParam<T>): SQLNode<T | string> => {
     });
 };
 
-type CompositeNodeMember = SQLNode<any> | CompositeNode | string;
-
-export interface CompositeNode extends Buildable, Iterable<CompositeNodeMember> {
-    add(...subNodes: (CompositeNodeMember)[]): CompositeNode;
-
-    readonly length: number;
-
-    readonly separator: string;
-}
-
 const compositeNodeProto = {
     * [Symbol.iterator]() {
         for (const n of this.nodes) {
@@ -122,11 +101,10 @@ const compositeNodeProto = {
             }
         }
     },
-    add(...args: (CompositeNodeMember)[]) {
+    add: fluentMethod(function (this: CompositeNode, ...args: (CompositeNodeMember)[]) {
         const nodeArgs = args.map(n => isBuildable(n) ? n : identityNode(n));
         this.nodes.push(...nodeArgs);
-        return this;
-    },
+    }),
     build(params, offset) {
         let off = offset;
         const text = [];
@@ -173,7 +151,7 @@ export const pointerNode = (params: NodeParam<string>): SQLNode<string> => {
 };
 
 // SQLNode made from a sub builder (for subquery)
-export const expressionNode = (params: NodeParam<Buildable>): SQLNode<Buildable> => {
+export const expressionNode = (params: SQLNodeValue<Buildable> | Buildable): SQLNode<Buildable> => {
     const node = isSQLNodeValue(params) ? params : {value: params};
     return Object.create(expressionNodeProto, {
         node: {
@@ -184,15 +162,9 @@ export const expressionNode = (params: NodeParam<Buildable>): SQLNode<Buildable>
     });
 };
 
-export interface CompositeNodeFactoryInput {
-    separator: string;
-    type?: string;
-}
-
 // SQLNode made of nodes
 export const compositeNode = ({separator = ' '}: CompositeNodeFactoryInput = {
-    separator: ' ',
-    type: 'unknown composite'
+    separator: ' '
 }): CompositeNode => Object.create(compositeNodeProto, {
     nodes: {value: []},
     length: {
@@ -202,3 +174,32 @@ export const compositeNode = ({separator = ' '}: CompositeNodeFactoryInput = {
     },
     separator: {value: separator}
 });
+
+const functionNodeProto = {
+    add: fluentMethod(function (this: FunctionNode, ...args: any[]) {
+        this.args.push(...args.map(val => {
+            return isFunctionNode(val) ? val : valueNode(val);
+        }));
+    }),
+    build(this: FunctionNode, params, offset) {
+        const argsNode = compositeNode({separator: ','});
+        for (const node of this.args) {
+            argsNode.add(node);
+        }
+        const {text: argText, values} = argsNode.build(params, offset);
+        const functionCall = `${this.functionName}(${argText})`;
+        const text = this.alias !== undefined ? `${functionCall} AS "${this.alias}"` : functionCall;
+        return {
+            text,
+            values
+        };
+    }
+};
+
+export const functionNode = (fnName: string, alias ?: string): FunctionNode => {
+    return Object.create(functionNodeProto, {
+        functionName: {value: fnName},
+        args: {value: []},
+        alias: {value: alias}
+    });
+};

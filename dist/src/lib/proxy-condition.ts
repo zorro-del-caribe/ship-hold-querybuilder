@@ -1,5 +1,6 @@
 import {ConditionsBuilder, condition, SQLComparisonOperator} from '../builders/conditions';
-import {Buildable, CompositeNode, compositeNode, NodeParam} from './nodes';
+import {compositeNode} from './nodes';
+import {Buildable, NodeParam, CompositeNode} from './node-interfaces';
 
 // Create a condition builder proxy which will be revoked as soon as the main builder is called
 export default <T extends Buildable>(mainBuilder: T, nodes: CompositeNode) => (leftOperand: NodeParam<any>, operator ?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<T> & T => {

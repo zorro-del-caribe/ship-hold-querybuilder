@@ -5,3 +5,5 @@ export * from './builders/insert';
 export { del as delete, DeleteBuilder } from './builders/delete';
 export * from './lib/aggregations';
 export * from './lib/nodes';
+export * from './lib/operators';
+export * from './lib/node-interfaces';

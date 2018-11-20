@@ -18,7 +18,7 @@ const create = () => {
     }, withAsMixin());
 };
 
-test('should pass the with arguments along', t => {
+test('with clause: should pass the with arguments along', t => {
     const b = create();
     const s1 = select().from('foo');
     b.with('bim', s1);
@@ -26,7 +26,7 @@ test('should pass the with arguments along', t => {
     t.equal(b.build().text, '"bim" AS (SELECT * FROM "foo")');
 });
 
-test('should chain with arguments clauses', t => {
+test('with clause: should chain with arguments clauses', t => {
     const b = create();
     const s1 = select().from('foo');
     const s2 = select().from('bar');
@@ -35,7 +35,7 @@ test('should chain with arguments clauses', t => {
     t.equal(b.build().text, '"bim" AS (SELECT * FROM "foo"), "bam" AS (SELECT * FROM "bar")');
 });
 
-test('should pass parameters along', t => {
+test('with clause: should pass parameters along', t => {
     const b = create();
     const s1 = select().from('foo').limit('$limit1');
     const s2 = select().from('bar').limit('$limit2');
@@ -45,5 +45,3 @@ test('should pass parameters along', t => {
     t.equal(result.text, '"bim" AS (SELECT * FROM "foo" LIMIT $1), "bam" AS (SELECT * FROM "bar" LIMIT $2)');
     t.deepEqual(result.values, [42, 66]);
 });
-
-

@@ -1,4 +1,4 @@
-import { CompositeNode, NodeParam, Buildable } from '../lib/nodes';
+import { Buildable, CompositeNode } from '../lib/node-interfaces';
 export declare const enum SQLComparisonOperator {
     EQUAL = "=",
     LOWER_THAN = "<",
@@ -22,7 +22,7 @@ export declare const enum SQLComparisonOperator {
     CONCATENATE = "||"
 }
 export interface ConditionFunction<T> {
-    (leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): ConditionsBuilder<T> & T;
+    (leftOperand: any, operator?: any, rightOperand?: any): ConditionsBuilder<T> & T;
 }
 export interface ConditionsBuilder<T> extends Buildable {
     or: ConditionFunction<T>;

@@ -2,16 +2,31 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __ = require('..');
-
 const fluentMethod = (fn) => function (...args) {
     fn.bind(this)(...args);
     return this;
 };
 const isBuildable = (val) => val.build && typeof val.build === 'function';
 const isSQLNodeValue = (val) => val && typeof val.value !== 'undefined';
-const isSubQuery = node => node.value && isBuildable(node.value);
+const isFunctionNode = (val) => val.functionName !== undefined;
 const identity = val => val;
+const selectLikeExpression = (val) => {
+    if (isBuildable(val)) {
+        // function call node
+        if (isFunctionNode(val)) {
+            return val;
+        }
+        // expression
+        return expressionNode(val);
+    }
+    if (typeof val === 'string') {
+        return pointerNode(val);
+    }
+    if (isSQLNodeValue(val)) {
+        return isBuildable(val.value) ? expressionNode(val) : pointerNode(val);
+    }
+    throw new Error(`${val} is not a FromAble`);
+};
 const eventuallyAddComposite = (target) => (composite, keyword) => {
     if (composite.length) {
         if (keyword) {
@@ -69,8 +84,7 @@ const pointerNodeProto = {
             }
             val = parts.join('.');
         }
-        const value = node.fn ? `${node.fn}(${val})` : val;
-        const text = node.as ? `${value} AS ${wrap(node.as)}` : value;
+        const text = node.as ? `${val} AS ${wrap(node.as)}` : val;
         return { text, values: [] };
     }
 };
@@ -107,11 +121,10 @@ const compositeNodeProto = {
             }
         }
     },
-    add(...args) {
+    add: fluentMethod(function (...args) {
         const nodeArgs = args.map(n => isBuildable(n) ? n : identityNode(n));
         this.nodes.push(...nodeArgs);
-        return this;
-    },
+    }),
     build(params, offset) {
         let off = offset;
         const text = [];
@@ -166,8 +179,7 @@ const expressionNode = (params) => {
 };
 // SQLNode made of nodes
 const compositeNode = ({ separator = ' ' } = {
-    separator: ' ',
-    type: 'unknown composite'
+    separator: ' '
 }) => Object.create(compositeNodeProto, {
     nodes: { value: [] },
     length: {
@@ -177,6 +189,33 @@ const compositeNode = ({ separator = ' ' } = {
     },
     separator: { value: separator }
 });
+const functionNodeProto = {
+    add: fluentMethod(function (...args) {
+        this.args.push(...args.map(val => {
+            return isFunctionNode(val) ? val : valueNode(val);
+        }));
+    }),
+    build(params, offset) {
+        const argsNode = compositeNode({ separator: ',' });
+        for (const node of this.args) {
+            argsNode.add(node);
+        }
+        const { text: argText, values } = argsNode.build(params, offset);
+        const functionCall = `${this.functionName}(${argText})`;
+        const text = this.alias !== undefined ? `${functionCall} AS "${this.alias}"` : functionCall;
+        return {
+            text,
+            values
+        };
+    }
+};
+const functionNode = (fnName, alias) => {
+    return Object.create(functionNodeProto, {
+        functionName: { value: fnName },
+        args: { value: [] },
+        alias: { value: alias }
+    });
+};
 
 (function (SQLComparisonOperator) {
     SQLComparisonOperator["EQUAL"] = "=";
@@ -270,28 +309,34 @@ const clauseMixin = (...names) => {
     };
     for (const name of names) {
         api[name] = fluentMethod(function (...args) {
-            // todo we might make a difference here between clauses which accept subqueries and other subqueries with mandatory aliases ex SELECT ... VS FROM ...
-            this[nodeSymbol][name].add(...args.map(n => isSubQuery(n) ? expressionNode(n) : pointerNode(n)));
+            this[nodeSymbol][name].add(...args.map(selectLikeExpression)); // Technically not all the clause would accept fromable
         });
     }
     return api;
 };
 
 function where (leftOperand, operator, rightOperand) {
-    return proxy(this, this[nodeSymbol].where)(leftOperand, operator, rightOperand);
+    const nodes = this[nodeSymbol].where;
+    let conditionNode = nodes;
+    //if we have already some conditions we add the new one as a AND branch
+    if (nodes.length) {
+        conditionNode = compositeNode();
+        nodes.add('AND', '(', conditionNode, ')');
+    }
+    return proxy(this, conditionNode)(leftOperand, operator, rightOperand);
 }
 
 const withAsMixin = () => ({
     with: fluentMethod(function (label, builder) {
         const n = this[nodeSymbol].with;
-        const clause = __.compositeNode();
-        clause.add(__.pointerNode(label), 'AS', __.expressionNode({ value: builder }));
+        const clause = compositeNode();
+        clause.add(pointerNode(label), 'AS', expressionNode({ value: builder }));
         n.add(clause);
     })
 });
 
 const joinFunc = (joinType) => function (table, leftOperand, rightOperand) {
-    const node = isSubQuery(table) ? expressionNode(table) : pointerNode(table); // todo
+    const node = selectLikeExpression(table);
     this[nodeSymbol].join.add(identityNode(joinType), node);
     return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
 };
@@ -398,35 +443,49 @@ const update = (tableName) => {
     return instance.table(tableName);
 };
 
+const createValuesNode = (props) => item => {
+    const valuesNode = compositeNode({ separator: ', ' });
+    for (const prop of props) {
+        valuesNode.add(item[prop] === undefined ?
+            identityNode('DEFAULT') :
+            valueNode(item[prop]));
+    }
+    return compositeNode().add('(', valuesNode, ')');
+};
 const proto$2 = Object.assign({
-    value: fluentMethod(function (prop, value) {
-        this.field(prop);
-        this[nodeSymbol].values.add(value === undefined ? identityNode('DEFAULT') : valueNode(value));
+    values: fluentMethod(function (item) {
+        const items = Array.isArray(item) ? item : [item];
+        const mapFn = createValuesNode(this.fields);
+        for (const i of items) {
+            this[nodeSymbol].values.add(mapFn(i));
+        }
     }),
     build(params = {}, offset = 1) {
         const queryNode = compositeNode();
         const add = eventuallyAddComposite(queryNode);
-        const { into, with: withc, field, values, returning } = this[nodeSymbol];
+        const { into, with: withc, values, returning } = this[nodeSymbol];
+        const fieldsNode = compositeNode({ separator: ', ' }).add(...this.fields.map(pointerNode));
         add(withc, 'with');
-        queryNode.add('INSERT INTO', into, '(', field, ')', 'VALUES', '(', values, ')');
+        queryNode.add('INSERT INTO', into, '(', fieldsNode, ')', 'VALUES', values);
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin(), clauseMixin('into', 'field', 'returning'));
-const insert = (map = {}) => {
+}, withAsMixin(), clauseMixin('into', 'returning'));
+const insert = (map, ...othersProps) => {
+    const fields = typeof map === 'string' ? [map].concat(othersProps) : Object.keys(map);
     const instance = Object.create(proto$2, {
         [nodeSymbol]: {
             value: {
                 into: compositeNode({ separator: ', ' }),
-                field: compositeNode({ separator: ', ' }),
                 returning: compositeNode({ separator: ', ' }),
                 values: compositeNode({ separator: ', ' }),
                 with: compositeNode({ separator: ', ' })
             }
-        }
+        },
+        fields: { value: fields }
     });
-    for (const [key, value] of Object.entries(map)) {
-        instance.value(key, value);
+    if (typeof map !== 'string') {
+        instance.values(map);
     }
     return instance;
 };
@@ -464,12 +523,18 @@ const del = (tableName) => {
     return instance;
 };
 
-const aggregateFunc = (fn) => (field, label = fn) => ({ value: field, as: label, fn });
+const aggregateFunc = (fn) => (field) => functionNode(fn)
+    .add(field);
 const count = aggregateFunc('count');
 const avg = aggregateFunc('avg');
 const sum = aggregateFunc('sum');
 const toJson = aggregateFunc('to_json');
 const jsonAgg = aggregateFunc('json_agg');
+
+const coalesce = (values, as) => {
+    return functionNode('COALESCE', as)
+        .add(...values);
+};
 
 exports.delete = del;
 exports.condition = condition;
@@ -486,3 +551,5 @@ exports.valueNode = valueNode;
 exports.pointerNode = pointerNode;
 exports.expressionNode = expressionNode;
 exports.compositeNode = compositeNode;
+exports.functionNode = functionNode;
+exports.coalesce = coalesce;

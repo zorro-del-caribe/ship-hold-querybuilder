@@ -1,9 +1,13 @@
-import {expressionNode, NodeParam, pointerNode} from '../lib/nodes';
-import {fluentMethod, isSubQuery} from '../lib/util';
+import {fluentMethod, selectLikeExpression} from '../lib/util';
+import {Buildable, CompositeNode, NodeParam} from '../lib/node-interfaces';
 
 export const nodeSymbol = Symbol('nodes');
 
-export const clauseMixin = <T extends object>(...names: string[]): T => {
+interface Clause {
+    node(name: string, newNode?: CompositeNode): CompositeNode;
+}
+
+export const clauseMixin = <T extends object>(...names: string[]): T & Clause => {
     const api = {
         node(name, newNode) {
             const node = this[nodeSymbol][name];
@@ -14,34 +18,29 @@ export const clauseMixin = <T extends object>(...names: string[]): T => {
         }
     };
     for (const name of names) {
-        api[name] = fluentMethod(function (this: T, ...args: NodeParam<any>[]) {
-            // todo we might make a difference here between clauses which accept subqueries and other subqueries with mandatory aliases ex SELECT ... VS FROM ...
-            this[nodeSymbol][name].add(...args.map(n => isSubQuery(n) ? expressionNode(n) : pointerNode(n)));
+        api[name] = fluentMethod(function (this: T, ...args: (NodeParam<any> | Buildable)[]) {
+            this[nodeSymbol][name].add(...args.map(selectLikeExpression)); // Technically not all the clause would accept fromable
         });
     }
-    return <T>api;
+    return <T & Clause>api;
 };
 
-export interface IntoClause {
-    into: (...args: NodeParam<any>[]) => IntoClause;
+export interface IntoClause<T> {
+    into: (...args: NodeParam<any>[]) => T;
 }
 
-export interface ReturningClause {
-    returning: (...args: NodeParam<any>[]) => ReturningClause;
+export interface ReturningClause<T> {
+    returning: (...args: NodeParam<any>[]) => T;
 }
 
-export interface FromClause {
-    from: (...args: NodeParam<any>[]) => FromClause;
+export interface FromClause<T> {
+    from: (...args: NodeParam<any>[]) => T;
 }
 
-export interface TableClause {
-    table: (...args: NodeParam<any>[]) => TableClause;
+export interface TableClause<T> {
+    table: (...args: NodeParam<any>[]) => T;
 }
 
-export interface FieldClause {
-    field: (...args: NodeParam<any>[]) => FieldClause;
-}
-
-export interface UsingClause {
-    using: (...args: NodeParam<any>[]) => UsingClause;
+export interface UsingClause<T> {
+    using: (...args: NodeParam<any>[]) => T;
 }

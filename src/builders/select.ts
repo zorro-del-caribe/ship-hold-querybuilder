@@ -3,20 +3,24 @@ import {
     valueNode,
     identityNode,
     pointerNode,
-    expressionNode,
-    SQLNode,
-    Buildable,
-    NodeParam
 } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
-import {fluentMethod, identity, isSubQuery, eventuallyAddComposite} from '../lib/util';
+import {
+    fluentMethod,
+    identity,
+    eventuallyAddComposite,
+    SelectLikeExpression,
+    selectLikeExpression
+} from '../lib/util';
 import {clauseMixin, FromClause, nodeSymbol} from './clause';
 import where from './where';
-import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
+import {ConditionFunction, SQLComparisonOperator} from './conditions';
 import {withAsMixin, WithClause} from './with';
+import {Buildable, NodeParam} from '../lib/node-interfaces';
 
-const joinFunc = (joinType: string) => function (this: SelectBuilder, table: string, leftOperand: NodeParam<any>, rightOperand: NodeParam<any>) {
-    const node: SQLNode<any> = isSubQuery(table) ? expressionNode(table) : pointerNode(table); // todo
+
+const joinFunc = (joinType: string) => function (this: SelectBuilder, table: SelectLikeExpression, leftOperand: any, rightOperand: any) {
+    const node = selectLikeExpression(table);
     this[nodeSymbol].join.add(identityNode(joinType), node);
     return leftOperand && rightOperand ? this.on(leftOperand, rightOperand) : this;
 };
@@ -26,16 +30,16 @@ export const enum SortDirection {
     DESC = 'DESC'
 }
 
-export interface SelectBuilder extends Buildable, FromClause, WithClause {
-    join(table: string): SelectBuilder;
+export interface SelectBuilder extends Buildable, FromClause<SelectBuilder>, WithClause<SelectBuilder> {
+    join(table: SelectLikeExpression): SelectBuilder;
 
-    leftJoin(table: string): SelectBuilder;
+    leftJoin(table: SelectLikeExpression): SelectBuilder;
 
-    rightJoin(table: string): SelectBuilder;
+    rightJoin(table: SelectLikeExpression): SelectBuilder;
 
-    fullJoin(table: string): SelectBuilder;
+    fullJoin(table: SelectLikeExpression): SelectBuilder;
 
-    on(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand?: NodeParam<any>): SelectBuilder;
+    on: ConditionFunction<SelectBuilder>;
 
     orderBy(column: string, direction?: SortDirection): SelectBuilder;
 
@@ -43,7 +47,7 @@ export interface SelectBuilder extends Buildable, FromClause, WithClause {
 
     noop(): SelectBuilder;
 
-    where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator | NodeParam<any>, rightOperand ?: NodeParam<any>): ConditionsBuilder<SelectBuilder> & SelectBuilder;
+    where: ConditionFunction<SelectBuilder>;
 
     select(...params: NodeParam<any>[]): SelectBuilder;
 }
@@ -89,9 +93,9 @@ const proto = Object.assign({
         add(nodes.limit, 'limit');
         return queryNode.build(params, offset);
     }
-}, withAsMixin(), clauseMixin('from', 'select'));
+}, withAsMixin<SelectBuilder>(), clauseMixin<SelectBuilder>('from', 'select'));
 
-export const select = (...args: NodeParam<any>[]): SelectBuilder => {
+export const select = (...args: SelectLikeExpression[]): SelectBuilder => {
     const nodes = {
         orderBy: compositeNode({separator: ', '}),
         limit: compositeNode(),

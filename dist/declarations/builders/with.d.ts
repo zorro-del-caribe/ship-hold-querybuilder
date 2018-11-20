@@ -1,5 +1,5 @@
-import { Buildable } from '..';
-export interface WithClause {
-    with(label: string, builder: Buildable): WithClause;
+import { Buildable } from '../lib/node-interfaces';
+export interface WithClause<T> {
+    with(label: string, builder: Buildable): T;
 }
-export declare const withAsMixin: () => WithClause;
+export declare const withAsMixin: <T>() => WithClause<T>;
