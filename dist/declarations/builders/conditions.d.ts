@@ -19,7 +19,8 @@ export declare const enum SQLComparisonOperator {
     CONTAINS = "@>",
     IS_CONTAINED_BY = "<@",
     OVERLAP = "&&",
-    CONCATENATE = "||"
+    CONCATENATE = "||",
+    IN = "IN"
 }
 export interface ConditionFunction<T> {
     (leftOperand: any, operator?: any, rightOperand?: any): ConditionsBuilder<T> & T;

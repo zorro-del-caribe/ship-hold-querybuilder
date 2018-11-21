@@ -2,12 +2,12 @@ import { SelectLikeExpression } from '../lib/util';
 import { FromClause } from './clause';
 import { ConditionFunction } from './conditions';
 import { WithClause } from './with';
-import { Buildable, NodeParam } from '../lib/node-interfaces';
+import { Builder, NodeParam } from '../lib/node-interfaces';
 export declare const enum SortDirection {
     ASC = "ASC",
     DESC = "DESC"
 }
-export interface SelectBuilder extends Buildable, FromClause<SelectBuilder>, WithClause<SelectBuilder> {
+export interface SelectBuilder extends Builder, FromClause<SelectBuilder>, WithClause<SelectBuilder> {
     join(table: SelectLikeExpression): SelectBuilder;
     leftJoin(table: SelectLikeExpression): SelectBuilder;
     rightJoin(table: SelectLikeExpression): SelectBuilder;

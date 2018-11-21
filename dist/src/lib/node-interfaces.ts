@@ -16,6 +16,7 @@ export interface SQLNodeValue<T> {
 
 export interface SQLNode<T> extends Buildable {
     node: SQLNodeValue<T>;
+    map: (fn: Function) => SQLNode<T>;
 }
 
 export type NodeParam<T> = string | SQLNodeValue<T>;
@@ -24,7 +25,7 @@ export interface CompositeNodeFactoryInput {
     separator: string;
 }
 
-export type CompositeNodeMember = SQLNode<any> | CompositeNode | string;
+export type CompositeNodeMember = SQLNode<any> | CompositeNode | FunctionNode | string;
 
 export interface CompositeNode extends Buildable, Iterable<CompositeNodeMember> {
     readonly nodes: CompositeNodeMember[];
@@ -36,10 +37,14 @@ export interface CompositeNode extends Buildable, Iterable<CompositeNodeMember> 
     readonly separator: string;
 }
 
-export interface FunctionNode extends SQLNode<any> {
+export interface FunctionNode extends Buildable {
     add(...args: SelectLikeExpression[]): FunctionNode;
 
     readonly alias?: string;
     readonly args: CompositeNodeMember[];
     readonly functionName: string;
+}
+
+export interface Builder extends Buildable {
+    node(clause: string, newNode ?: CompositeNode): CompositeNode;
 }

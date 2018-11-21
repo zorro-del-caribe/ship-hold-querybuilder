@@ -1,8 +1,8 @@
 import { TableClause, UsingClause } from './clause';
 import { ConditionsBuilder, SQLComparisonOperator } from './conditions';
-import { NodeParam, Buildable } from '../lib/node-interfaces';
+import { NodeParam, Builder } from '../lib/node-interfaces';
 declare type WithTableUsingClause = TableClause<DeleteBuilder> & UsingClause<DeleteBuilder>;
-export interface DeleteBuilder extends WithTableUsingClause, Buildable {
+export interface DeleteBuilder extends WithTableUsingClause, Builder {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand?: NodeParam<any>): ConditionsBuilder<DeleteBuilder> & DeleteBuilder;
     from(...args: any[]): DeleteBuilder;
 }

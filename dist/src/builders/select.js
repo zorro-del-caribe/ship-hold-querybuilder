@@ -20,7 +20,6 @@ const proto = Object.assign({
     rightJoin: joinFunc('RIGHT JOIN'),
     fullJoin: joinFunc('FULL JOIN'),
     on(leftOperand, operator, rightOperand) {
-        // Todo throw exception if last join nodes is not a identity node
         const { join } = this[nodeSymbol];
         join.add('ON');
         return proxy(this, join)(leftOperand, operator, rightOperand);

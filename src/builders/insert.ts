@@ -2,11 +2,11 @@ import {compositeNode, identityNode, valueNode, pointerNode} from '../lib/nodes'
 import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import {clauseMixin, IntoClause, nodeSymbol, ReturningClause} from './clause';
 import {withAsMixin} from './with';
-import {Buildable} from '../lib/node-interfaces';
+import {Builder} from '../lib/node-interfaces';
 
 type WithIntoFieldReturningClause = IntoClause<InsertBuilder> & ReturningClause<InsertBuilder>;
 
-export interface InsertBuilder extends WithIntoFieldReturningClause, Buildable {
+export interface InsertBuilder extends WithIntoFieldReturningClause, Builder {
     readonly fields: string[];
     values: (values: any[]) => InsertBuilder;
 }

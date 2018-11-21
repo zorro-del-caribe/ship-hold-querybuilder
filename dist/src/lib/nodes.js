@@ -49,6 +49,9 @@ const pointerNodeProto = {
         }
         const text = node.as ? `${val} AS ${wrap(node.as)}` : val;
         return { text, values: [] };
+    },
+    map(fn) {
+        return pointerNode(fn(this.node.value));
     }
 };
 const expressionNodeProto = {
@@ -57,10 +60,16 @@ const expressionNodeProto = {
         const { text, values } = node.value.build(params, offset);
         const fullText = node.as ? [`(${text})`, 'AS', wrap(node.as)].join(' ') : `(${text})`;
         return { text: fullText, values };
+    },
+    map(fn) {
+        return expressionNode(fn(this.node.value));
     }
 };
 const identityNodeProto = {
-    build: buildStringMethodFactory(identity)
+    build: buildStringMethodFactory(identity),
+    map(fn) {
+        return identityNode(fn(this.node.value));
+    }
 };
 // SQLNode that returns its own value when built
 export const identityNode = (params) => {
@@ -76,12 +85,7 @@ export const identityNode = (params) => {
 const compositeNodeProto = {
     *[Symbol.iterator]() {
         for (const n of this.nodes) {
-            if (n[Symbol.iterator] === undefined) {
-                yield n.node;
-            }
-            else {
-                yield* n;
-            }
+            yield n.node ? n.node : n;
         }
     },
     add: fluentMethod(function (...args) {
@@ -105,7 +109,10 @@ const compositeNodeProto = {
     }
 };
 const valueNodeProto = {
-    build: buildStringMethodFactory(parseValue)
+    build: buildStringMethodFactory(parseValue),
+    map(fn) {
+        return valueNode(fn(this.node.value));
+    }
 };
 // SQLNode that returns a scalar value when built
 export const valueNode = (params) => {

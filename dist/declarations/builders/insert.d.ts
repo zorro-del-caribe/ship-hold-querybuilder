@@ -1,7 +1,7 @@
 import { IntoClause, ReturningClause } from './clause';
-import { Buildable } from '../lib/node-interfaces';
+import { Builder } from '../lib/node-interfaces';
 declare type WithIntoFieldReturningClause = IntoClause<InsertBuilder> & ReturningClause<InsertBuilder>;
-export interface InsertBuilder extends WithIntoFieldReturningClause, Buildable {
+export interface InsertBuilder extends WithIntoFieldReturningClause, Builder {
     readonly fields: string[];
     values: (values: any[]) => InsertBuilder;
 }

@@ -16,7 +16,7 @@ import {clauseMixin, FromClause, nodeSymbol} from './clause';
 import where from './where';
 import {ConditionFunction, SQLComparisonOperator} from './conditions';
 import {withAsMixin, WithClause} from './with';
-import {Buildable, NodeParam} from '../lib/node-interfaces';
+import {Builder, NodeParam} from '../lib/node-interfaces';
 
 
 const joinFunc = (joinType: string) => function (this: SelectBuilder, table: SelectLikeExpression, leftOperand: any, rightOperand: any) {
@@ -30,7 +30,7 @@ export const enum SortDirection {
     DESC = 'DESC'
 }
 
-export interface SelectBuilder extends Buildable, FromClause<SelectBuilder>, WithClause<SelectBuilder> {
+export interface SelectBuilder extends Builder, FromClause<SelectBuilder>, WithClause<SelectBuilder> {
     join(table: SelectLikeExpression): SelectBuilder;
 
     leftJoin(table: SelectLikeExpression): SelectBuilder;
@@ -58,7 +58,6 @@ const proto = Object.assign({
     rightJoin: joinFunc('RIGHT JOIN'),
     fullJoin: joinFunc('FULL JOIN'),
     on(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>) {
-        // Todo throw exception if last join nodes is not a identity node
         const {join} = this[nodeSymbol];
         join.add('ON');
         return proxy(this, join)(leftOperand, operator, rightOperand);

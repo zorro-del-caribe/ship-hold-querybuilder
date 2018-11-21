@@ -22,6 +22,7 @@ export var SQLComparisonOperator;
     SQLComparisonOperator["IS_CONTAINED_BY"] = "<@";
     SQLComparisonOperator["OVERLAP"] = "&&";
     SQLComparisonOperator["CONCATENATE"] = "||";
+    SQLComparisonOperator["IN"] = "IN";
 })(SQLComparisonOperator || (SQLComparisonOperator = {}));
 export const condition = (conditionNodes = compositeNode()) => {
     return {

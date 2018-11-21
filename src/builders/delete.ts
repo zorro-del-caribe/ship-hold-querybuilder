@@ -4,11 +4,11 @@ import where from './where';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
 import {eventuallyAddComposite} from '../lib/util';
 import {withAsMixin} from './with';
-import {NodeParam, Buildable} from '../lib/node-interfaces';
+import {NodeParam, Builder} from '../lib/node-interfaces';
 
 type WithTableUsingClause = TableClause<DeleteBuilder> & UsingClause<DeleteBuilder>;
 
-export interface DeleteBuilder extends WithTableUsingClause, Buildable {
+export interface DeleteBuilder extends WithTableUsingClause, Builder {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<DeleteBuilder> & DeleteBuilder;
 
     from(...args): DeleteBuilder;
