@@ -16,7 +16,7 @@ import {clauseMixin, FromClause, nodeSymbol} from './clause';
 import where from './where';
 import {ConditionFunction, SQLComparisonOperator} from './conditions';
 import {withAsMixin, WithClause} from './with';
-import {Builder, NodeParam} from '../lib/node-interfaces';
+import {Builder, Cloneable, NodeParam} from '../lib/node-interfaces';
 
 
 const joinFunc = (joinType: string) => function (this: SelectBuilder, table: SelectLikeExpression, leftOperand: any, rightOperand: any) {
@@ -30,7 +30,11 @@ export const enum SortDirection {
     DESC = 'DESC'
 }
 
-export interface SelectBuilder extends Builder, FromClause<SelectBuilder>, WithClause<SelectBuilder> {
+interface FromWithClause<T> extends FromClause<T>, WithClause<T> {
+
+}
+
+export interface SelectBuilder extends Builder, FromWithClause<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
     join(table: SelectLikeExpression): SelectBuilder;
 
     leftJoin(table: SelectLikeExpression): SelectBuilder;
@@ -77,7 +81,8 @@ const proto = Object.assign({
             this[nodeSymbol].limit.add(identityNode('OFFSET'), valueNode(offset));
         }
     }),
-    noop: fluentMethod(identity),
+    noop: fluentMethod(function () {
+    }),
     where,
     build(params = {}, offset = 1) {
         const queryNode = compositeNode();
@@ -105,7 +110,15 @@ export const select = (...args: SelectLikeExpression[]): SelectBuilder => {
         with: compositeNode({separator: ', '})
     };
 
-    const instance = Object.create(proto, {[nodeSymbol]: {value: nodes}});
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = select();
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
+            }
+            return Object.assign(clone, this); // clone all enumerable properties too
+        }
+    }, proto), {[nodeSymbol]: {value: nodes}});
 
     if (args.length === 0) {
         args.push('*');

@@ -326,3 +326,17 @@ test('select builder: WITH clause with parameters', t => {
     t.equal(actual.text, expected);
     t.deepEqual(actual.values, [21, 42]);
 });
+
+test('select builder should be cloneable', t => {
+    const s1 = select('foo', {value: 'bar', as: 'woot'})
+        .from('users')
+        .where('age', '>', 20)
+        .orderBy('age');
+
+    const s2 = s1.clone();
+
+    s2.limit(10);
+
+    t.equal(s1.build().text, `SELECT "foo", "bar" AS "woot" FROM "users" WHERE "age" > 20 ORDER BY "age"`);
+    t.equal(s2.build().text, `SELECT "foo", "bar" AS "woot" FROM "users" WHERE "age" > 20 ORDER BY "age" LIMIT 10`);
+});

@@ -2,11 +2,11 @@ import {compositeNode, identityNode, valueNode, pointerNode} from '../lib/nodes'
 import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import {clauseMixin, IntoClause, nodeSymbol, ReturningClause} from './clause';
 import {withAsMixin} from './with';
-import {Builder} from '../lib/node-interfaces';
+import {Builder, Cloneable} from '../lib/node-interfaces';
 
 type WithIntoFieldReturningClause = IntoClause<InsertBuilder> & ReturningClause<InsertBuilder>;
 
-export interface InsertBuilder extends WithIntoFieldReturningClause, Builder {
+export interface InsertBuilder extends WithIntoFieldReturningClause, Cloneable<InsertBuilder>, Builder {
     readonly fields: string[];
     values: (values: any[]) => InsertBuilder;
 }
@@ -50,14 +50,24 @@ export const insert = (map: itemOrColumnDefinition, ...othersProps: string[]): I
 
     const fields = typeof map === 'string' ? [map].concat(othersProps) : Object.keys(map);
 
-    const instance = Object.create(proto, {
-        [nodeSymbol]: {
-            value: {
-                into: compositeNode({separator: ', '}),
-                returning: compositeNode({separator: ', '}),
-                values: compositeNode({separator: ', '}),
-                with: compositeNode({separator: ', '})
+    const nodes = {
+        into: compositeNode({separator: ', '}),
+        returning: compositeNode({separator: ', '}),
+        values: compositeNode({separator: ', '}),
+        with: compositeNode({separator: ', '})
+    };
+
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = insert(map, ...othersProps);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return clone;
+        }
+    }, proto), {
+        [nodeSymbol]: {
+            value: nodes
         },
         fields: {value: fields}
     });

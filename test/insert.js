@@ -64,3 +64,18 @@ test('insert builder: WITH clause', t => {
 
     t.equal(actual, expected);
 });
+
+test('insert builder: should be cloneable', t => {
+    const builder1 = insert('foo', 'bar')
+        .into('users')
+        .values([{foo: 'foo1', bar: 1}, {foo: 'foo2', bar: 2}, {foo: 'foo3', bar: 3}])
+
+    const builder2 = builder1.clone();
+
+    builder2.values([{foo: 'foo4', bar: 4}]);
+
+    const expected1 = `INSERT INTO "users" ( "foo", "bar" ) VALUES ( 'foo1', 1 ), ( 'foo2', 2 ), ( 'foo3', 3 )`;
+    const expected2 = `INSERT INTO "users" ( "foo", "bar" ) VALUES ( 'foo1', 1 ), ( 'foo2', 2 ), ( 'foo3', 3 ), ( 'foo4', 4 )`;
+    t.equal(builder1.build().text, expected1);
+    t.equal(builder2.build().text, expected2);
+});

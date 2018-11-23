@@ -69,7 +69,12 @@ const parseValue = (value) => {
             return value;
     }
 };
-const pointerNodeProto = {
+const mapIdentityClone = {
+    clone() {
+        return this.map(identity);
+    }
+};
+const pointerNodeProto = Object.assign({
     build(params, offset) {
         const { node } = this;
         let val;
@@ -88,9 +93,9 @@ const pointerNodeProto = {
         return { text, values: [] };
     },
     map(fn) {
-        return pointerNode(fn(this.node.value));
+        return pointerNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
     }
-};
+}, mapIdentityClone);
 const expressionNodeProto = {
     build(params, offset) {
         const { node } = this;
@@ -99,15 +104,18 @@ const expressionNodeProto = {
         return { text: fullText, values };
     },
     map(fn) {
-        return expressionNode(fn(this.node.value));
+        return expressionNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
+    },
+    clone() {
+        return this.map(item => item.clone());
     }
 };
-const identityNodeProto = {
+const identityNodeProto = Object.assign({
     build: buildStringMethodFactory(identity),
     map(fn) {
-        return identityNode(fn(this.node.value));
+        return identityNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
     }
-};
+}, mapIdentityClone);
 // SQLNode that returns its own value when built
 const identityNode = (params) => {
     const node = isSQLNodeValue(params) === false ? { value: params } : params;
@@ -143,14 +151,19 @@ const compositeNodeProto = {
             text: text.join(this.separator),
             values
         };
+    },
+    clone() {
+        const clone = compositeNode({ separator: this.separator });
+        clone.nodes.push(...this.nodes.map(n => n.clone()));
+        return clone;
     }
 };
-const valueNodeProto = {
+const valueNodeProto = Object.assign({
     build: buildStringMethodFactory(parseValue),
     map(fn) {
-        return valueNode(fn(this.node.value));
+        return valueNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
     }
-};
+}, mapIdentityClone);
 // SQLNode that returns a scalar value when built
 const valueNode = (params) => {
     const node = isSQLNodeValue(params) ? params : { value: params };
@@ -214,6 +227,11 @@ const functionNodeProto = {
             text,
             values
         };
+    },
+    clone() {
+        const clone = functionNode(this.functionName, this.alias);
+        clone.args.push(...this.args.map(i => i.clone()));
+        return clone;
     }
 };
 const functionNode = (fnName, alias) => {
@@ -298,7 +316,9 @@ var proxy = (mainBuilder, nodes) => (leftOperand, operator, rightOperand) => {
             }
             nodes.add(conditionNodes);
             revocable.revoke();
-            return mainBuilder[property].bind(mainBuilder);
+            return typeof mainBuilder[property] === 'function' ?
+                mainBuilder[property].bind(mainBuilder) :
+                mainBuilder[property];
         }
     });
     return revocable.proxy;
@@ -377,7 +397,8 @@ const proto = Object.assign({
             this[nodeSymbol].limit.add(identityNode('OFFSET'), valueNode(offset));
         }
     }),
-    noop: fluentMethod(identity),
+    noop: fluentMethod(function () {
+    }),
     where,
     build(params = {}, offset = 1) {
         const queryNode = compositeNode();
@@ -403,7 +424,15 @@ const select = (...args) => {
         where: compositeNode(),
         with: compositeNode({ separator: ', ' })
     };
-    const instance = Object.create(proto, { [nodeSymbol]: { value: nodes } });
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = select();
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
+            }
+            return Object.assign(clone, this); // clone all enumerable properties too
+        }
+    }, proto), { [nodeSymbol]: { value: nodes } });
     if (args.length === 0) {
         args.push('*');
     }
@@ -415,6 +444,8 @@ const createSetNode = (prop, value) => compositeNode()
     .add(pointerNode(prop), '=', valueNode(value));
 const proto$1 = Object.assign({
     where,
+    noop: fluentMethod(function () {
+    }),
     set: fluentMethod(function (prop, value) {
         const setNodes = value === undefined ?
             Object.getOwnPropertyNames(prop)
@@ -435,16 +466,25 @@ const proto$1 = Object.assign({
     }
 }, withAsMixin(), clauseMixin('returning', 'from', 'table'));
 const update = (tableName) => {
-    const instance = Object.create(proto$1, {
-        [nodeSymbol]: {
-            value: {
-                where: compositeNode(),
-                table: compositeNode({ separator: ', ' }),
-                returning: compositeNode({ separator: ', ' }),
-                from: compositeNode({ separator: ', ' }),
-                values: compositeNode({ separator: ', ' }),
-                with: compositeNode({ separator: ', ' })
+    const nodes = {
+        where: compositeNode(),
+        table: compositeNode({ separator: ', ' }),
+        returning: compositeNode({ separator: ', ' }),
+        from: compositeNode({ separator: ', ' }),
+        values: compositeNode({ separator: ', ' }),
+        with: compositeNode({ separator: ', ' })
+    };
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = update(tableName);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return Object.assign(clone, this);
+        }
+    }, proto$1), {
+        [nodeSymbol]: {
+            value: nodes
         }
     });
     return instance.table(tableName);
@@ -480,14 +520,23 @@ const proto$2 = Object.assign({
 }, withAsMixin(), clauseMixin('into', 'returning'));
 const insert = (map, ...othersProps) => {
     const fields = typeof map === 'string' ? [map].concat(othersProps) : Object.keys(map);
-    const instance = Object.create(proto$2, {
-        [nodeSymbol]: {
-            value: {
-                into: compositeNode({ separator: ', ' }),
-                returning: compositeNode({ separator: ', ' }),
-                values: compositeNode({ separator: ', ' }),
-                with: compositeNode({ separator: ', ' })
+    const nodes = {
+        into: compositeNode({ separator: ', ' }),
+        returning: compositeNode({ separator: ', ' }),
+        values: compositeNode({ separator: ', ' }),
+        with: compositeNode({ separator: ', ' })
+    };
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = insert(map, ...othersProps);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return clone;
+        }
+    }, proto$2), {
+        [nodeSymbol]: {
+            value: nodes
         },
         fields: { value: fields }
     });
@@ -499,6 +548,8 @@ const insert = (map, ...othersProps) => {
 
 const proto$3 = Object.assign({
     where,
+    noop: fluentMethod(function () {
+    }),
     from(...args) {
         return this.table(...args);
     },
@@ -514,14 +565,23 @@ const proto$3 = Object.assign({
     }
 }, withAsMixin(), clauseMixin('table', 'using'));
 const del = (tableName) => {
-    const instance = Object.create(proto$3, {
-        [nodeSymbol]: {
-            value: {
-                using: compositeNode(),
-                table: compositeNode(),
-                where: compositeNode(),
-                with: compositeNode({ separator: ', ' })
+    const nodes = {
+        using: compositeNode({ separator: ', ' }),
+        table: compositeNode(),
+        where: compositeNode(),
+        with: compositeNode({ separator: ', ' })
+    };
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = del(tableName);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return clone;
+        }
+    }, proto$3), {
+        [nodeSymbol]: {
+            value: nodes
         }
     });
     if (tableName) {

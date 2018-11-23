@@ -1,5 +1,9 @@
 import {SelectLikeExpression} from './util';
 
+export interface Cloneable<T> {
+    clone(): T;
+}
+
 export interface SQLQuery {
     text: string;
     values: any[];
@@ -14,7 +18,7 @@ export interface SQLNodeValue<T> {
     as?: string;
 }
 
-export interface SQLNode<T> extends Buildable {
+export interface SQLNode<T> extends Buildable, Cloneable<SQLNode<T>> {
     node: SQLNodeValue<T>;
     map: (fn: Function) => SQLNode<T>;
 }
@@ -27,7 +31,7 @@ export interface CompositeNodeFactoryInput {
 
 export type CompositeNodeMember = SQLNode<any> | CompositeNode | FunctionNode | string;
 
-export interface CompositeNode extends Buildable, Iterable<CompositeNodeMember> {
+export interface CompositeNode extends Buildable, Cloneable<CompositeNode>, Iterable<CompositeNodeMember> {
     readonly nodes: CompositeNodeMember[];
 
     add(...subNodes: CompositeNodeMember[]): CompositeNode;
@@ -37,7 +41,7 @@ export interface CompositeNode extends Buildable, Iterable<CompositeNodeMember> 
     readonly separator: string;
 }
 
-export interface FunctionNode extends Buildable {
+export interface FunctionNode extends Buildable, Cloneable<FunctionNode> {
     add(...args: SelectLikeExpression[]): FunctionNode;
 
     readonly alias?: string;

@@ -7,6 +7,7 @@ import {
 } from '../lib/nodes';
 import {fluentMethod, isBuildable} from '../lib/util';
 import {Buildable, CompositeNode} from '../lib/node-interfaces';
+import {insert} from './insert';
 
 export const enum SQLComparisonOperator {
     EQUAL = '=',

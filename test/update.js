@@ -91,11 +91,32 @@ test('update builder: WITH clause', t => {
         .limit(10);
 
     const actual = update('foo')
-        .with('users',subq)
+        .with('users', subq)
         .set('drunk', true)
         .build().text;
 
     const expected = `WITH "users" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) UPDATE "foo" SET "drunk" = true`;
 
     t.equal(actual, expected);
+});
+
+test('update builder: should be cloneable', t => {
+    const subq = select()
+        .from('users')
+        .where('age', '>', 21)
+        .orderBy('name')
+        .limit(10);
+
+    const main = update('foo')
+        .with('users', subq)
+        .set('drunk', true);
+
+    const expected1 = `WITH "users" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) UPDATE "foo" SET "drunk" = true`;
+
+    const clone = main.clone();
+    clone.set('foo', 'bar');
+    const expected2 = `WITH "users" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) UPDATE "foo" SET "drunk" = true, "foo" = 'bar'`;
+
+    t.equal(main.build().text, expected1);
+    t.equal(clone.build().text, expected2);
 });

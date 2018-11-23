@@ -32,14 +32,23 @@ const proto = Object.assign({
 }, withAsMixin(), clauseMixin('into', 'returning'));
 export const insert = (map, ...othersProps) => {
     const fields = typeof map === 'string' ? [map].concat(othersProps) : Object.keys(map);
-    const instance = Object.create(proto, {
-        [nodeSymbol]: {
-            value: {
-                into: compositeNode({ separator: ', ' }),
-                returning: compositeNode({ separator: ', ' }),
-                values: compositeNode({ separator: ', ' }),
-                with: compositeNode({ separator: ', ' })
+    const nodes = {
+        into: compositeNode({ separator: ', ' }),
+        returning: compositeNode({ separator: ', ' }),
+        values: compositeNode({ separator: ', ' }),
+        with: compositeNode({ separator: ', ' })
+    };
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = insert(map, ...othersProps);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return clone;
+        }
+    }, proto), {
+        [nodeSymbol]: {
+            value: nodes
         },
         fields: { value: fields }
     });

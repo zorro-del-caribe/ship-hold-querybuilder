@@ -14,7 +14,9 @@ export default <T extends Buildable>(mainBuilder: T, nodes: CompositeNode) => (l
             }
             nodes.add(conditionNodes);
             revocable.revoke();
-            return mainBuilder[property].bind(mainBuilder);
+            return typeof mainBuilder[property] === 'function' ?
+                mainBuilder[property].bind(mainBuilder) :
+                mainBuilder[property];
         }
     });
     return revocable.proxy;

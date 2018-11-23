@@ -12,6 +12,8 @@ export interface UpdateBuilder extends WithReturningFromTable, Builder {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<UpdateBuilder> & UpdateBuilder;
 
     set<T>(prop: string, value: T): UpdateBuilder;
+
+    noop: () => UpdateBuilder;
 }
 
 const createSetNode = (prop, value) => compositeNode()
@@ -19,6 +21,8 @@ const createSetNode = (prop, value) => compositeNode()
 
 const proto = Object.assign({
     where,
+    noop: fluentMethod(function () {
+    }),
     set: fluentMethod(function (prop, value) {
         const setNodes = value === undefined ?
             Object.getOwnPropertyNames(prop)
@@ -41,16 +45,26 @@ const proto = Object.assign({
 }, withAsMixin<UpdateBuilder>(), clauseMixin<UpdateBuilder>('returning', 'from', 'table'));
 
 export const update = (tableName: string): UpdateBuilder => {
-    const instance = Object.create(proto, {
-        [nodeSymbol]: {
-            value: {
-                where: compositeNode(),
-                table: compositeNode({separator: ', '}),
-                returning: compositeNode({separator: ', '}),
-                from: compositeNode({separator: ', '}),
-                values: compositeNode({separator: ', '}),
-                with: compositeNode({separator: ', '})
+    const nodes = {
+        where: compositeNode(),
+        table: compositeNode({separator: ', '}),
+        returning: compositeNode({separator: ', '}),
+        from: compositeNode({separator: ', '}),
+        values: compositeNode({separator: ', '}),
+        with: compositeNode({separator: ', '})
+    };
+
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = update(tableName);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return Object.assign(clone, this);
+        }
+    }, proto), {
+        [nodeSymbol]: {
+            value: nodes
         }
     });
     return instance.table(tableName);

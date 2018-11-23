@@ -1,6 +1,6 @@
 import { compositeNode, valueNode, identityNode, pointerNode, } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
-import { fluentMethod, identity, eventuallyAddComposite, selectLikeExpression } from '../lib/util';
+import { fluentMethod, eventuallyAddComposite, selectLikeExpression } from '../lib/util';
 import { clauseMixin, nodeSymbol } from './clause';
 import where from './where';
 import { withAsMixin } from './with';
@@ -39,7 +39,8 @@ const proto = Object.assign({
             this[nodeSymbol].limit.add(identityNode('OFFSET'), valueNode(offset));
         }
     }),
-    noop: fluentMethod(identity),
+    noop: fluentMethod(function () {
+    }),
     where,
     build(params = {}, offset = 1) {
         const queryNode = compositeNode();
@@ -65,7 +66,15 @@ export const select = (...args) => {
         where: compositeNode(),
         with: compositeNode({ separator: ', ' })
     };
-    const instance = Object.create(proto, { [nodeSymbol]: { value: nodes } });
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = select();
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
+            }
+            return Object.assign(clone, this); // clone all enumerable properties too
+        }
+    }, proto), { [nodeSymbol]: { value: nodes } });
     if (args.length === 0) {
         args.push('*');
     }

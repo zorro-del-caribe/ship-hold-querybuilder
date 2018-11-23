@@ -32,7 +32,12 @@ const parseValue = (value) => {
             return value;
     }
 };
-const pointerNodeProto = {
+const mapIdentityClone = {
+    clone() {
+        return this.map(identity);
+    }
+};
+const pointerNodeProto = Object.assign({
     build(params, offset) {
         const { node } = this;
         let val;
@@ -51,9 +56,9 @@ const pointerNodeProto = {
         return { text, values: [] };
     },
     map(fn) {
-        return pointerNode(fn(this.node.value));
+        return pointerNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
     }
-};
+}, mapIdentityClone);
 const expressionNodeProto = {
     build(params, offset) {
         const { node } = this;
@@ -62,15 +67,18 @@ const expressionNodeProto = {
         return { text: fullText, values };
     },
     map(fn) {
-        return expressionNode(fn(this.node.value));
+        return expressionNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
+    },
+    clone() {
+        return this.map(item => item.clone());
     }
 };
-const identityNodeProto = {
+const identityNodeProto = Object.assign({
     build: buildStringMethodFactory(identity),
     map(fn) {
-        return identityNode(fn(this.node.value));
+        return identityNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
     }
-};
+}, mapIdentityClone);
 // SQLNode that returns its own value when built
 export const identityNode = (params) => {
     const node = isSQLNodeValue(params) === false ? { value: params } : params;
@@ -106,14 +114,19 @@ const compositeNodeProto = {
             text: text.join(this.separator),
             values
         };
+    },
+    clone() {
+        const clone = compositeNode({ separator: this.separator });
+        clone.nodes.push(...this.nodes.map(n => n.clone()));
+        return clone;
     }
 };
-const valueNodeProto = {
+const valueNodeProto = Object.assign({
     build: buildStringMethodFactory(parseValue),
     map(fn) {
-        return valueNode(fn(this.node.value));
+        return valueNode(Object.assign({}, this.node, { value: fn(this.node.value) }));
     }
-};
+}, mapIdentityClone);
 // SQLNode that returns a scalar value when built
 export const valueNode = (params) => {
     const node = isSQLNodeValue(params) ? params : { value: params };
@@ -177,6 +190,11 @@ const functionNodeProto = {
             text,
             values
         };
+    },
+    clone() {
+        const clone = functionNode(this.functionName, this.alias);
+        clone.args.push(...this.args.map(i => i.clone()));
+        return clone;
     }
 };
 export const functionNode = (fnName, alias) => {

@@ -8,7 +8,7 @@ import {
     CompositeNodeFactoryInput,
     FunctionNode,
     CompositeNode,
-    SQLQuery
+    SQLQuery, Cloneable
 } from './node-interfaces';
 
 const STAR = '*';
@@ -47,7 +47,13 @@ const parseValue = (value: any): string => {
     }
 };
 
-const pointerNodeProto = {
+const mapIdentityClone = {
+    clone() {
+        return this.map(identity);
+    }
+};
+
+const pointerNodeProto = Object.assign({
     build(this: SQLNode<string>, params, offset) {
         const {node} = this;
         let val;
@@ -65,28 +71,31 @@ const pointerNodeProto = {
         return {text, values: []};
     },
     map(fn) {
-        return pointerNode(fn(this.node.value));
+        return pointerNode(Object.assign({}, this.node, {value: fn(this.node.value)}));
     }
-};
+}, mapIdentityClone);
 
 const expressionNodeProto = {
-    build(this: SQLNode<Buildable>, params, offset) {
+    build(this: SQLNode<Buildable & Cloneable<Buildable>>, params, offset) {
         const {node} = this;
         const {text, values} = node.value.build(params, offset);
         const fullText = node.as ? [`(${text})`, 'AS', wrap(node.as)].join(' ') : `(${text})`;
         return {text: fullText, values};
     },
     map(fn) {
-        return expressionNode(fn(this.node.value));
+        return expressionNode(Object.assign({}, this.node, {value: fn(this.node.value)}));
+    },
+    clone() {
+        return this.map(item => item.clone());
     }
 };
 
-const identityNodeProto = {
+const identityNodeProto = Object.assign({
     build: buildStringMethodFactory(identity),
     map(fn) {
-        return identityNode(fn(this.node.value));
+        return identityNode(Object.assign({}, this.node, {value: fn(this.node.value)}));
     }
-};
+}, mapIdentityClone);
 
 // SQLNode that returns its own value when built
 export const identityNode = <T>(params: NodeParam<T>): SQLNode<T | string> => {
@@ -124,15 +133,20 @@ const compositeNodeProto = {
             text: text.join(this.separator),
             values
         };
+    },
+    clone() {
+        const clone = compositeNode({separator: this.separator});
+        clone.nodes.push(...this.nodes.map(n => n.clone()));
+        return clone;
     }
 };
 
-const valueNodeProto = {
+const valueNodeProto = Object.assign({
     build: buildStringMethodFactory(parseValue),
     map(fn) {
-        return valueNode(fn(this.node.value));
+        return valueNode(Object.assign({}, this.node, {value: fn(this.node.value)}));
     }
-};
+}, mapIdentityClone);
 
 // SQLNode that returns a scalar value when built
 export const valueNode = <T>(params: NodeParam<T>): SQLNode<T> => {
@@ -201,6 +215,11 @@ const functionNodeProto = {
             text,
             values
         };
+    },
+    clone() {
+        const clone = functionNode(this.functionName, this.alias);
+        clone.args.push(...this.args.map(i => i.clone()));
+        return clone;
     }
 };
 

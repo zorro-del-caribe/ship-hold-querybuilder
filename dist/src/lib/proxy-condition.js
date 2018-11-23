@@ -12,7 +12,9 @@ export default (mainBuilder, nodes) => (leftOperand, operator, rightOperand) => 
             }
             nodes.add(conditionNodes);
             revocable.revoke();
-            return mainBuilder[property].bind(mainBuilder);
+            return typeof mainBuilder[property] === 'function' ?
+                mainBuilder[property].bind(mainBuilder) :
+                mainBuilder[property];
         }
     });
     return revocable.proxy;

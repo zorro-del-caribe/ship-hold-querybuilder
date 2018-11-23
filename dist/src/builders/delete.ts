@@ -2,20 +2,24 @@ import {compositeNode} from '../lib/nodes';
 import {clauseMixin, nodeSymbol, TableClause, UsingClause} from './clause';
 import where from './where';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
-import {eventuallyAddComposite} from '../lib/util';
+import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import {withAsMixin} from './with';
-import {NodeParam, Builder} from '../lib/node-interfaces';
+import {NodeParam, Builder, Cloneable} from '../lib/node-interfaces';
 
 type WithTableUsingClause = TableClause<DeleteBuilder> & UsingClause<DeleteBuilder>;
 
-export interface DeleteBuilder extends WithTableUsingClause, Builder {
+export interface DeleteBuilder extends WithTableUsingClause, Builder, Cloneable<DeleteBuilder> {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<DeleteBuilder> & DeleteBuilder;
 
     from(...args): DeleteBuilder;
+
+    noop(): DeleteBuilder;
 }
 
 const proto = Object.assign({
     where,
+    noop: fluentMethod(function () {
+    }),
     from(...args) {
         return this.table(...args);
     },
@@ -32,14 +36,23 @@ const proto = Object.assign({
 }, withAsMixin<DeleteBuilder>(), clauseMixin<DeleteBuilder>('table', 'using'));
 
 export const del = (tableName: string): DeleteBuilder => {
-    const instance = Object.create(proto, {
-        [nodeSymbol]: {
-            value: {
-                using: compositeNode(),
-                table: compositeNode(),
-                where: compositeNode(),
-                with: compositeNode({separator: ', '})
+    const nodes = {
+        using: compositeNode({separator: ', '}),
+        table: compositeNode(),
+        where: compositeNode(),
+        with: compositeNode({separator: ', '})
+    };
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = del(tableName);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return clone;
+        }
+    }, proto), {
+        [nodeSymbol]: {
+            value: nodes
         }
     });
 

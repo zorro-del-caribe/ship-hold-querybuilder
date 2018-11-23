@@ -48,11 +48,27 @@ test('delete builder: WITH clause', t => {
         .limit(10);
 
     const actual = del('foo')
-        .with('bars',subq)
-        .where('bar','IN','"bars"')
+        .with('bars', subq)
+        .where('bar', 'IN', '"bars"')
         .build().text;
 
     const expected = `WITH "bars" AS (SELECT * FROM "users" WHERE "age" > 21 ORDER BY "name" LIMIT 10) DELETE FROM "foo" WHERE "bar" IN "bars"`;
 
     t.equal(actual, expected);
+});
+
+test('delete should be cloneable', t => {
+    const expected = `DELETE FROM "films" USING "producers" WHERE "producer_id" = "producers"."id" AND "producers"."name" = 'foo'`;
+
+    const builder1 = del('films')
+        .using('producers')
+        .where('producer_id', '"producers"."id"')
+        .and('producers.name', 'foo')
+        .noop();
+
+    const builder2 = builder1.clone().using('woot');
+
+    t.equal(builder1.build().text, expected);
+    t.equal(builder2.build().text, `DELETE FROM "films" USING "producers", "woot" WHERE "producer_id" = "producers"."id" AND "producers"."name" = 'foo'`);
+
 });

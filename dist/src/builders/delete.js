@@ -1,10 +1,12 @@
 import { compositeNode } from '../lib/nodes';
 import { clauseMixin, nodeSymbol } from './clause';
 import where from './where';
-import { eventuallyAddComposite } from '../lib/util';
+import { eventuallyAddComposite, fluentMethod } from '../lib/util';
 import { withAsMixin } from './with';
 const proto = Object.assign({
     where,
+    noop: fluentMethod(function () {
+    }),
     from(...args) {
         return this.table(...args);
     },
@@ -20,14 +22,23 @@ const proto = Object.assign({
     }
 }, withAsMixin(), clauseMixin('table', 'using'));
 export const del = (tableName) => {
-    const instance = Object.create(proto, {
-        [nodeSymbol]: {
-            value: {
-                using: compositeNode(),
-                table: compositeNode(),
-                where: compositeNode(),
-                with: compositeNode({ separator: ', ' })
+    const nodes = {
+        using: compositeNode({ separator: ', ' }),
+        table: compositeNode(),
+        where: compositeNode(),
+        with: compositeNode({ separator: ', ' })
+    };
+    const instance = Object.create(Object.assign({
+        clone() {
+            const clone = del(tableName);
+            for (const [key, value] of Object.entries(nodes)) {
+                clone.node(key, value.clone());
             }
+            return clone;
+        }
+    }, proto), {
+        [nodeSymbol]: {
+            value: nodes
         }
     });
     if (tableName) {
