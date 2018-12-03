@@ -340,3 +340,23 @@ test('select builder should be cloneable', t => {
     t.equal(s1.build().text, `SELECT "foo", "bar" AS "woot" FROM "users" WHERE "age" > 20 ORDER BY "age"`);
     t.equal(s2.build().text, `SELECT "foo", "bar" AS "woot" FROM "users" WHERE "age" > 20 ORDER BY "age" LIMIT 10`);
 });
+
+test('select builder: group by clause single column', t => {
+    const q = select('foo', 'bar').from('woo').groupBy('foo').build();
+    t.equal(q.text, `SELECT "foo", "bar" FROM "woo" GROUP BY "foo"`);
+});
+
+test('select builder: group by clause with multiple columns', t => {
+    const q = select('foo', 'bar').from('woo').groupBy('foo', 'bar.bim', 'woot').build();
+    t.equal(q.text, `SELECT "foo", "bar" FROM "woo" GROUP BY "foo", "bar"."bim", "woot"`);
+});
+
+test('select builder: group by clause with having clause', t => {
+    const q = select('foo', 'bar')
+        .from('woo')
+        .groupBy('foo')
+        .having('foo', '>', 4)
+        .and('bim', 'in', select('id').from('blah'))
+        .build();
+    t.equal(q.text, `SELECT "foo", "bar" FROM "woo" GROUP BY "foo" HAVING "foo" > 4 AND "bim" in (SELECT "id" FROM "blah")`);
+});

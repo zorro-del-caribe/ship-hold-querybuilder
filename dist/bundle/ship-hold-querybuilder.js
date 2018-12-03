@@ -376,6 +376,10 @@ var ShipHoldQuery = (function (exports) {
         leftJoin: joinFunc('LEFT JOIN'),
         rightJoin: joinFunc('RIGHT JOIN'),
         fullJoin: joinFunc('FULL JOIN'),
+        having(leftOperand, operator, rightOperand) {
+            const { having } = this[nodeSymbol];
+            return proxy(this, having)(leftOperand, operator, rightOperand);
+        },
         on(leftOperand, operator, rightOperand) {
             const { join } = this[nodeSymbol];
             join.add('ON');
@@ -408,11 +412,13 @@ var ShipHoldQuery = (function (exports) {
             add(nodes.from, 'from');
             add(nodes.join);
             add(nodes.where, 'where');
+            add(nodes.groupBy, 'group by');
+            add(nodes.having, 'having');
             add(nodes.orderBy, 'order by');
             add(nodes.limit, 'limit');
             return queryNode.build(params, offset);
         }
-    }, withAsMixin(), clauseMixin('from', 'select'));
+    }, withAsMixin(), clauseMixin('from', 'select', 'groupBy'));
     const select = (...args) => {
         const nodes = {
             orderBy: compositeNode({ separator: ', ' }),
@@ -421,7 +427,9 @@ var ShipHoldQuery = (function (exports) {
             from: compositeNode({ separator: ', ' }),
             select: compositeNode({ separator: ', ' }),
             where: compositeNode(),
-            with: compositeNode({ separator: ', ' })
+            with: compositeNode({ separator: ', ' }),
+            groupBy: compositeNode({ separator: ', ' }),
+            having: compositeNode()
         };
         const instance = Object.create(Object.assign({
             clone() {
@@ -595,6 +603,7 @@ var ShipHoldQuery = (function (exports) {
     const avg = aggregateFunc('avg');
     const sum = aggregateFunc('sum');
     const toJson = aggregateFunc('to_json');
+    const toJsonb = aggregateFunc('to_jsonb');
     const jsonAgg = aggregateFunc('json_agg');
 
     const coalesce = (values, as) => {
@@ -611,6 +620,7 @@ var ShipHoldQuery = (function (exports) {
     exports.avg = avg;
     exports.sum = sum;
     exports.toJson = toJson;
+    exports.toJsonb = toJsonb;
     exports.jsonAgg = jsonAgg;
     exports.identityNode = identityNode;
     exports.valueNode = valueNode;

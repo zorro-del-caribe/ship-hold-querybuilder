@@ -1,5 +1,5 @@
 import { SelectLikeExpression } from '../lib/util';
-import { FromClause } from './clause';
+import { FromClause, GroupByClause } from './clause';
 import { ConditionFunction } from './conditions';
 import { WithClause } from './with';
 import { Builder, Cloneable, NodeParam } from '../lib/node-interfaces';
@@ -7,9 +7,9 @@ export declare const enum SortDirection {
     ASC = "ASC",
     DESC = "DESC"
 }
-interface FromWithClause<T> extends FromClause<T>, WithClause<T> {
+interface FromWithClauseGroupBy<T> extends FromClause<T>, WithClause<T>, GroupByClause<T> {
 }
-export interface SelectBuilder extends Builder, FromWithClause<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
+export interface SelectBuilder extends Builder, FromWithClauseGroupBy<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
     join(table: SelectLikeExpression): SelectBuilder;
     leftJoin(table: SelectLikeExpression): SelectBuilder;
     rightJoin(table: SelectLikeExpression): SelectBuilder;

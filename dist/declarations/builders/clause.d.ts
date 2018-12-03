@@ -1,4 +1,5 @@
 import { CompositeNode, NodeParam } from '../lib/node-interfaces';
+import { ConditionFunction } from './conditions';
 export declare const nodeSymbol: unique symbol;
 interface Clause {
     node(name: string, newNode?: CompositeNode): CompositeNode;
@@ -18,5 +19,9 @@ export interface TableClause<T> {
 }
 export interface UsingClause<T> {
     using: (...args: NodeParam<any>[]) => T;
+}
+export interface GroupByClause<T> {
+    groupBy: (column: string, ...moreColumns: string[]) => T;
+    having: ConditionFunction<T>;
 }
 export {};

@@ -375,6 +375,10 @@ const proto = Object.assign({
     leftJoin: joinFunc('LEFT JOIN'),
     rightJoin: joinFunc('RIGHT JOIN'),
     fullJoin: joinFunc('FULL JOIN'),
+    having(leftOperand, operator, rightOperand) {
+        const { having } = this[nodeSymbol];
+        return proxy(this, having)(leftOperand, operator, rightOperand);
+    },
     on(leftOperand, operator, rightOperand) {
         const { join } = this[nodeSymbol];
         join.add('ON');
@@ -407,11 +411,13 @@ const proto = Object.assign({
         add(nodes.from, 'from');
         add(nodes.join);
         add(nodes.where, 'where');
+        add(nodes.groupBy, 'group by');
+        add(nodes.having, 'having');
         add(nodes.orderBy, 'order by');
         add(nodes.limit, 'limit');
         return queryNode.build(params, offset);
     }
-}, withAsMixin(), clauseMixin('from', 'select'));
+}, withAsMixin(), clauseMixin('from', 'select', 'groupBy'));
 const select = (...args) => {
     const nodes = {
         orderBy: compositeNode({ separator: ', ' }),
@@ -420,7 +426,9 @@ const select = (...args) => {
         from: compositeNode({ separator: ', ' }),
         select: compositeNode({ separator: ', ' }),
         where: compositeNode(),
-        with: compositeNode({ separator: ', ' })
+        with: compositeNode({ separator: ', ' }),
+        groupBy: compositeNode({ separator: ', ' }),
+        having: compositeNode()
     };
     const instance = Object.create(Object.assign({
         clone() {
@@ -594,6 +602,7 @@ const count = aggregateFunc('count');
 const avg = aggregateFunc('avg');
 const sum = aggregateFunc('sum');
 const toJson = aggregateFunc('to_json');
+const toJsonb = aggregateFunc('to_jsonb');
 const jsonAgg = aggregateFunc('json_agg');
 
 const coalesce = (values, as) => {
@@ -601,4 +610,4 @@ const coalesce = (values, as) => {
         .add(...values);
 };
 
-export { del as delete, SQLComparisonOperator, condition, SortDirection, select, update, insert, count, avg, sum, toJson, jsonAgg, identityNode, valueNode, pointerNode, expressionNode, compositeNode, functionNode, coalesce };
+export { del as delete, SQLComparisonOperator, condition, SortDirection, select, update, insert, count, avg, sum, toJson, toJsonb, jsonAgg, identityNode, valueNode, pointerNode, expressionNode, compositeNode, functionNode, coalesce };

@@ -1,5 +1,6 @@
 import {fluentMethod, selectLikeExpression} from '../lib/util';
 import {Buildable, CompositeNode, NodeParam} from '../lib/node-interfaces';
+import {ConditionFunction} from './conditions';
 
 export const nodeSymbol = Symbol('nodes');
 
@@ -43,4 +44,9 @@ export interface TableClause<T> {
 
 export interface UsingClause<T> {
     using: (...args: NodeParam<any>[]) => T;
+}
+
+export interface GroupByClause<T> {
+    groupBy: (column: string, ...moreColumns: string[]) => T;
+    having: ConditionFunction<T>;
 }

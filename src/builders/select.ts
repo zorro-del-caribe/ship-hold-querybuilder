@@ -2,17 +2,16 @@ import {
     compositeNode,
     valueNode,
     identityNode,
-    pointerNode,
+    pointerNode, functionNode,
 } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
 import {
     fluentMethod,
-    identity,
     eventuallyAddComposite,
     SelectLikeExpression,
     selectLikeExpression
 } from '../lib/util';
-import {clauseMixin, FromClause, nodeSymbol} from './clause';
+import {clauseMixin, FromClause, GroupByClause, nodeSymbol} from './clause';
 import where from './where';
 import {ConditionFunction, SQLComparisonOperator} from './conditions';
 import {withAsMixin, WithClause} from './with';
@@ -30,11 +29,11 @@ export const enum SortDirection {
     DESC = 'DESC'
 }
 
-interface FromWithClause<T> extends FromClause<T>, WithClause<T> {
+interface FromWithClauseGroupBy<T> extends FromClause<T>, WithClause<T>, GroupByClause<T> {
 
 }
 
-export interface SelectBuilder extends Builder, FromWithClause<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
+export interface SelectBuilder extends Builder, FromWithClauseGroupBy<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
     join(table: SelectLikeExpression): SelectBuilder;
 
     leftJoin(table: SelectLikeExpression): SelectBuilder;
@@ -61,6 +60,10 @@ const proto = Object.assign({
     leftJoin: joinFunc('LEFT JOIN'),
     rightJoin: joinFunc('RIGHT JOIN'),
     fullJoin: joinFunc('FULL JOIN'),
+    having(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>) {
+        const {having} = this[nodeSymbol];
+        return proxy(this, having)(leftOperand, operator, rightOperand);
+    },
     on(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>) {
         const {join} = this[nodeSymbol];
         join.add('ON');
@@ -93,11 +96,13 @@ const proto = Object.assign({
         add(nodes.from, 'from');
         add(nodes.join);
         add(nodes.where, 'where');
+        add(nodes.groupBy, 'group by');
+        add(nodes.having, 'having');
         add(nodes.orderBy, 'order by');
         add(nodes.limit, 'limit');
         return queryNode.build(params, offset);
     }
-}, withAsMixin<SelectBuilder>(), clauseMixin<SelectBuilder>('from', 'select'));
+}, withAsMixin<SelectBuilder>(), clauseMixin<SelectBuilder>('from', 'select', 'groupBy'));
 
 export const select = (...args: SelectLikeExpression[]): SelectBuilder => {
     const nodes = {
@@ -107,7 +112,9 @@ export const select = (...args: SelectLikeExpression[]): SelectBuilder => {
         from: compositeNode({separator: ', '}),
         select: compositeNode({separator: ', '}),
         where: compositeNode(),
-        with: compositeNode({separator: ', '})
+        with: compositeNode({separator: ', '}),
+        groupBy: compositeNode({separator: ', '}),
+        having: compositeNode()
     };
 
     const instance = Object.create(Object.assign({

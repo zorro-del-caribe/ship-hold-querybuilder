@@ -1,6 +1,6 @@
 {
   "name": "ship-hold-querybuilder",
-  "version": "2.0.0-5",
+  "version": "2.0.0-6",
   "description": "sql query builder for ship-hold data access framework",
   "main": "./dist/bundle/index",
   "module": "./dist/bundle/module.js",
@@ -40,7 +40,7 @@
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "tap-set-exit": "^1.1.1",
-    "typescript": "^3.1.6",
+    "typescript": "^3.2.1",
     "zora": "^2.0.1"
   }
 }
