@@ -28,7 +28,7 @@ test('insert builder: fill with default if not value is provided', t => {
     t.equal(actual, expected);
 });
 
-test('insert builder: bulk update', t => {
+test('insert builder: bulk insert', t => {
     const actual = insert('foo', 'bar')
         .into('users')
         .values([{foo: 'foo1', bar: 1}, {foo: 'foo2', bar: 2}, {foo: 'foo3', bar: 3}])

@@ -6,7 +6,7 @@ export const fluentMethod = (fn: Function) => function (...args) {
     return this;
 };
 
-export const isBuildable = (val: any): val is Buildable => val.build && typeof val.build === 'function';
+export const isBuildable = (val: any): val is Buildable => val !== null && val.build && typeof val.build === 'function';
 
 export const isSQLNodeValue = <T>(val: any): val is SQLNodeValue<T> => val && typeof val.value !== 'undefined';
 

@@ -72,3 +72,13 @@ test('delete should be cloneable', t => {
     t.equal(builder2.build().text, `DELETE FROM "films" USING "producers", "woot" WHERE "producer_id" = "producers"."id" AND "producers"."name" = 'foo'`);
 
 });
+
+test('delete with a returning clause', t => {
+    const b = del('films')
+        .using({value: select().from('films').where('rating', '<', 2).noop(), as: 'bad_movies'})
+        .where('films.id', 'IN', select('id').from('bad_movies'))
+        .returning('*')
+        .build();
+
+    t.equal(b.text, 'DELETE FROM "films" USING (SELECT * FROM "films" WHERE "rating" < 2) AS "bad_movies" WHERE "films"."id" IN (SELECT "id" FROM "bad_movies") RETURNING *');
+});

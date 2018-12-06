@@ -1,14 +1,17 @@
 import {compositeNode} from '../lib/nodes';
-import {clauseMixin, nodeSymbol, TableClause, UsingClause} from './clause';
+import {clauseMixin, nodeSymbol, ReturningClause, TableClause, UsingClause} from './clause';
 import where from './where';
 import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
 import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import {withAsMixin} from './with';
 import {NodeParam, Builder, Cloneable} from '../lib/node-interfaces';
 
-type WithTableUsingClause = TableClause<DeleteBuilder> & UsingClause<DeleteBuilder>;
+type WithTableUsingReturningClause =
+    TableClause<DeleteBuilder>
+    & UsingClause<DeleteBuilder>
+    & ReturningClause<DeleteBuilder>;
 
-export interface DeleteBuilder extends WithTableUsingClause, Builder, Cloneable<DeleteBuilder> {
+export interface DeleteBuilder extends WithTableUsingReturningClause, Builder, Cloneable<DeleteBuilder> {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<DeleteBuilder> & DeleteBuilder;
 
     from(...args): DeleteBuilder;
@@ -24,19 +27,21 @@ const proto = Object.assign({
         return this.table(...args);
     },
     build(params = {}, offset = 1) {
-        const {table, with: withc, using, where} = this[nodeSymbol];
+        const {table, with: withc, using, where, returning} = this[nodeSymbol];
         const queryNode = compositeNode();
         const add = eventuallyAddComposite(queryNode);
         add(withc, 'with');
         queryNode.add('DELETE FROM', table);
         add(using, 'using');
         add(where, 'where');
+        add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin<DeleteBuilder>(), clauseMixin<DeleteBuilder>('table', 'using'));
+}, withAsMixin<DeleteBuilder>(), clauseMixin<DeleteBuilder>('table', 'using', 'returning'));
 
 export const del = (tableName: string): DeleteBuilder => {
     const nodes = {
+        returning: compositeNode({separator: ', '}),
         using: compositeNode({separator: ', '}),
         table: compositeNode(),
         where: compositeNode(),

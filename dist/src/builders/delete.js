@@ -11,18 +11,20 @@ const proto = Object.assign({
         return this.table(...args);
     },
     build(params = {}, offset = 1) {
-        const { table, with: withc, using, where } = this[nodeSymbol];
+        const { table, with: withc, using, where, returning } = this[nodeSymbol];
         const queryNode = compositeNode();
         const add = eventuallyAddComposite(queryNode);
         add(withc, 'with');
         queryNode.add('DELETE FROM', table);
         add(using, 'using');
         add(where, 'where');
+        add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin(), clauseMixin('table', 'using'));
+}, withAsMixin(), clauseMixin('table', 'using', 'returning'));
 export const del = (tableName) => {
     const nodes = {
+        returning: compositeNode({ separator: ', ' }),
         using: compositeNode({ separator: ', ' }),
         table: compositeNode(),
         where: compositeNode(),

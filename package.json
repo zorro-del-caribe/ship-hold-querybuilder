@@ -1,6 +1,6 @@
 {
   "name": "ship-hold-querybuilder",
-  "version": "2.0.0-6",
+  "version": "2.0.0",
   "description": "sql query builder for ship-hold data access framework",
   "main": "./dist/bundle/index",
   "module": "./dist/bundle/module.js",
@@ -26,7 +26,6 @@
     "query",
     "builder",
     "postgres",
-    "orm",
     "database",
     "ship-hold"
   ],
@@ -36,7 +35,7 @@
   "author": "Laurent RENARD",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^0.67.3",
+    "rollup": "^0.67.4",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "tap-set-exit": "^1.1.1",

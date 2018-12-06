@@ -6,7 +6,7 @@ const fluentMethod = (fn) => function (...args) {
     fn.bind(this)(...args);
     return this;
 };
-const isBuildable = (val) => val.build && typeof val.build === 'function';
+const isBuildable = (val) => val !== null && val.build && typeof val.build === 'function';
 const isSQLNodeValue = (val) => val && typeof val.value !== 'undefined';
 const isFunctionNode = (val) => val.functionName !== undefined;
 const identity = val => val;
@@ -562,18 +562,20 @@ const proto$3 = Object.assign({
         return this.table(...args);
     },
     build(params = {}, offset = 1) {
-        const { table, with: withc, using, where: where$$1 } = this[nodeSymbol];
+        const { table, with: withc, using, where: where$$1, returning } = this[nodeSymbol];
         const queryNode = compositeNode();
         const add = eventuallyAddComposite(queryNode);
         add(withc, 'with');
         queryNode.add('DELETE FROM', table);
         add(using, 'using');
         add(where$$1, 'where');
+        add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin(), clauseMixin('table', 'using'));
+}, withAsMixin(), clauseMixin('table', 'using', 'returning'));
 const del = (tableName) => {
     const nodes = {
+        returning: compositeNode({ separator: ', ' }),
         using: compositeNode({ separator: ', ' }),
         table: compositeNode(),
         where: compositeNode(),

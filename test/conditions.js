@@ -104,7 +104,7 @@ test('condition builder: support subquery as operand with parameters', t => {
     t.deepEqual(actual.values, [10, 42]);
 });
 
-test('condition builder: support multiple sub queries with parameters as operands', t=>{
+test('condition builder: support multiple sub queries with parameters as operands', t => {
     const selection = select()
         .from('bim')
         .limit('$limit');
@@ -115,12 +115,20 @@ test('condition builder: support multiple sub queries with parameters as operand
 
     const actual = condition()
         .if('foo', 'IN', selection)
-        .and('foo','NOT IN',selection2 )
+        .and('foo', 'NOT IN', selection2)
         .build({limit: 10, limitBis: 6});
 
     const expected = `"foo" IN (SELECT * FROM "bim" LIMIT $1) AND "foo" NOT IN (SELECT * FROM "blah" LIMIT $2)`;
 
     t.equal(actual.text, expected);
     t.deepEqual(actual.values, [10, 6]);
+});
+
+test('condition builder: support null type', t => {
+    const actual = condition()
+        .if('foo', 'IS NOT', null)
+        .build();
+
+    t.equal(actual.text, `"foo" IS NOT NULL`);
 });
 
