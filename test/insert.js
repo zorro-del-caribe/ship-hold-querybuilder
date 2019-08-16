@@ -1,4 +1,4 @@
-import test from 'zora';
+import {test} from 'zora';
 import {insert, select} from '../dist/src';
 
 test('insert builder: insert values as defined by value', t => {

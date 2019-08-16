@@ -1,6 +1,6 @@
-import test from 'zora';
 import {compositeNode} from '../dist/src';
-import {nodeSymbol, clauseMixin} from '../dist/src/builders/clause';
+import {clauseMixin, nodeSymbol} from '../dist/src/builders/clause';
+import {test} from 'zora';
 
 test('where builder: create a chainable delegation', t => {
     const foo = compositeNode();

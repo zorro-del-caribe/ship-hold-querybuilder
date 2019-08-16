@@ -1,5 +1,5 @@
-import {select, jsonAgg, coalesce} from '../dist/src';
-import test from 'zora';
+import {coalesce, jsonAgg, select} from '../dist/src';
+import {test} from 'zora';
 
 test('COALESCE operator', t => {
     const builder = select(coalesce(['foo', 'bar'])).from('foo');

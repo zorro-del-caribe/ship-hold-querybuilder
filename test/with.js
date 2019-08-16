@@ -1,8 +1,7 @@
-import test from 'zora';
+import {test} from 'zora';
 import {withAsMixin} from '../dist/src/builders/with';
 import {nodeSymbol} from '../dist/src/builders/clause';
 import {compositeNode, select} from '../dist/src';
-
 
 const create = () => {
 

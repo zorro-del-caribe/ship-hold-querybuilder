@@ -460,13 +460,13 @@ const proto$1 = Object.assign({
         this[nodeSymbol].values.add(...setNodes);
     }),
     build(params = {}, offset = 1) {
-        const { table, with: withC, values, from, where: where$$1, returning } = this[nodeSymbol];
+        const { table, with: withC, values, from, where, returning } = this[nodeSymbol];
         const queryNode = compositeNode();
         const add = eventuallyAddComposite(queryNode);
         add(withC, 'with');
         queryNode.add('UPDATE', table, 'SET', values);
         add(from, 'from');
-        add(where$$1, 'where');
+        add(where, 'where');
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
@@ -560,13 +560,13 @@ const proto$3 = Object.assign({
         return this.table(...args);
     },
     build(params = {}, offset = 1) {
-        const { table, with: withc, using, where: where$$1, returning } = this[nodeSymbol];
+        const { table, with: withc, using, where, returning } = this[nodeSymbol];
         const queryNode = compositeNode();
         const add = eventuallyAddComposite(queryNode);
         add(withc, 'with');
         queryNode.add('DELETE FROM', table);
         add(using, 'using');
-        add(where$$1, 'where');
+        add(where, 'where');
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
@@ -612,4 +612,4 @@ const coalesce = (values, as) => {
         .add(...values);
 };
 
-export { del as delete, SQLComparisonOperator, condition, SortDirection, select, update, insert, count, avg, sum, toJson, toJsonb, jsonAgg, identityNode, valueNode, pointerNode, expressionNode, compositeNode, functionNode, coalesce };
+export { SQLComparisonOperator, SortDirection, avg, coalesce, compositeNode, condition, count, del as delete, expressionNode, functionNode, identityNode, insert, jsonAgg, pointerNode, select, sum, toJson, toJsonb, update, valueNode };

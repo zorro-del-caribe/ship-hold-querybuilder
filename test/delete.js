@@ -1,5 +1,5 @@
-import test from 'zora';
-import {delete as del, insert, select} from '../dist/src';
+import {test} from 'zora';
+import {delete as del, select} from '../dist/src';
 
 test('basic delete', t => {
     const actual = del('users')

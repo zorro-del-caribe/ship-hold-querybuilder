@@ -1,4 +1,4 @@
-import test from 'zora';
+import {test} from 'zora';
 import {select} from '../dist/src';
 
 test('select builder: select given columns from a table', t => {

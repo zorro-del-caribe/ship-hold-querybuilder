@@ -1,4 +1,4 @@
-import test from 'zora';
+import {test} from 'zora';
 import {select, update} from '../dist/src';
 
 test('basic update', t => {

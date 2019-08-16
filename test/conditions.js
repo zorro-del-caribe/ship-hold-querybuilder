@@ -1,5 +1,5 @@
-import test from 'zora';
 import {condition, select} from '../dist/src';
+import {test} from 'zora';
 
 test('condition builder: use provided operator', t => {
     const actual = condition()

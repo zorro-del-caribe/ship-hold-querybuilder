@@ -1,4 +1,4 @@
-import test from 'zora';
+import {test} from 'zora';
 import * as nodes from '../dist/src/lib/nodes';
 
 test('identity node: build return the passed value', t => {
@@ -27,7 +27,7 @@ test('identity node: should be a Functor', t => {
     const n1 = nodes.identityNode('blah');
     const n2 = n1.map(v => String(v).toUpperCase());
 
-    t.notEqual(n1, n2);
+    t.notSame(n1, n2);
     t.deepEqual(n2.build().text, 'BLAH');
 });
 
@@ -35,7 +35,7 @@ test('identity node: should be cloneable', t => {
     const n1 = nodes.identityNode('blah');
     const n2 = n1.clone();
 
-    t.notEqual(n1, n2);
+    t.notSame(n1, n2);
     t.deepEqual(n1.build(), n2.build());
 });
 
@@ -55,14 +55,14 @@ test('value node: do not wrap parameterized value', t => {
 test('value node should be a Functor', t => {
     const n = nodes.valueNode(2);
     const n2 = n.map(v => v * 3);
-    t.notEqual(n, n2);
+    t.notSame(n, n2);
     t.equal(n2.build().text, 6);
 });
 
 test('value node should be cloneable', t => {
     const n = nodes.valueNode(2);
     const n2 = n.clone();
-    t.notEqual(n, n2);
+    t.notSame(n, n2);
     t.deepEqual(n2.build(), n.build());
 });
 
@@ -83,7 +83,7 @@ test('pointer node: with as label', t => {
 test('pointer node should be Functor', t => {
     const n = nodes.pointerNode('test');
     const n2 = n.map(v => String(v).toUpperCase());
-    t.notEqual(n, n2);
+    t.notSame(n, n2);
     t.deepEqual(n.build().text, '"test"');
     t.deepEqual(n2.build().text, '"TEST"');
 });
@@ -129,7 +129,7 @@ test('composite node: should be cloneable', t => {
     const nbis = n.clone();
     t.equal(n.build().text, `foo, "bar"."bim" AS "bb"`);
     t.equal(nbis.build().text, `foo, "bar"."bim" AS "bb"`);
-    t.notEqual(nbis, n);
+    t.notSame(nbis, n);
 });
 
 test('expression node: wrap with brackets', t => {

@@ -1,5 +1,5 @@
-import test from 'zora';
-import {select, count} from '../dist/src';
+import {test} from 'zora';
+import {count, select} from '../dist/src';
 
 test('select a count', t => {
     const actual = select(count('*'))

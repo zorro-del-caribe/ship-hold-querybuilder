@@ -461,13 +461,13 @@ var ShipHoldQuery = (function (exports) {
             this[nodeSymbol].values.add(...setNodes);
         }),
         build(params = {}, offset = 1) {
-            const { table, with: withC, values, from, where: where$$1, returning } = this[nodeSymbol];
+            const { table, with: withC, values, from, where, returning } = this[nodeSymbol];
             const queryNode = compositeNode();
             const add = eventuallyAddComposite(queryNode);
             add(withC, 'with');
             queryNode.add('UPDATE', table, 'SET', values);
             add(from, 'from');
-            add(where$$1, 'where');
+            add(where, 'where');
             add(returning, 'returning');
             return queryNode.build(params, offset);
         }
@@ -561,13 +561,13 @@ var ShipHoldQuery = (function (exports) {
             return this.table(...args);
         },
         build(params = {}, offset = 1) {
-            const { table, with: withc, using, where: where$$1, returning } = this[nodeSymbol];
+            const { table, with: withc, using, where, returning } = this[nodeSymbol];
             const queryNode = compositeNode();
             const add = eventuallyAddComposite(queryNode);
             add(withc, 'with');
             queryNode.add('DELETE FROM', table);
             add(using, 'using');
-            add(where$$1, 'where');
+            add(where, 'where');
             add(returning, 'returning');
             return queryNode.build(params, offset);
         }
@@ -613,24 +613,24 @@ var ShipHoldQuery = (function (exports) {
             .add(...values);
     };
 
-    exports.delete = del;
-    exports.condition = condition;
-    exports.select = select;
-    exports.update = update;
-    exports.insert = insert;
-    exports.count = count;
     exports.avg = avg;
+    exports.coalesce = coalesce;
+    exports.compositeNode = compositeNode;
+    exports.condition = condition;
+    exports.count = count;
+    exports.delete = del;
+    exports.expressionNode = expressionNode;
+    exports.functionNode = functionNode;
+    exports.identityNode = identityNode;
+    exports.insert = insert;
+    exports.jsonAgg = jsonAgg;
+    exports.pointerNode = pointerNode;
+    exports.select = select;
     exports.sum = sum;
     exports.toJson = toJson;
     exports.toJsonb = toJsonb;
-    exports.jsonAgg = jsonAgg;
-    exports.identityNode = identityNode;
+    exports.update = update;
     exports.valueNode = valueNode;
-    exports.pointerNode = pointerNode;
-    exports.expressionNode = expressionNode;
-    exports.compositeNode = compositeNode;
-    exports.functionNode = functionNode;
-    exports.coalesce = coalesce;
 
     return exports;
 
