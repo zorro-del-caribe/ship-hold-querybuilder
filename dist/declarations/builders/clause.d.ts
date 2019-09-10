@@ -5,23 +5,23 @@ interface Clause {
     node(name: string, newNode?: CompositeNode): CompositeNode;
 }
 export declare const clauseMixin: <T extends object>(...names: string[]) => T & Clause;
-export interface IntoClause<T> {
-    into: (...args: NodeParam<any>[]) => T;
+export interface IntoClause {
+    into: (...args: NodeParam<any>[]) => this;
 }
-export interface ReturningClause<T> {
-    returning: (...args: NodeParam<any>[]) => T;
+export interface ReturningClause {
+    returning: (...args: NodeParam<any>[]) => this;
 }
-export interface FromClause<T> {
-    from: (...args: NodeParam<any>[]) => T;
+export interface FromClause {
+    from: (...args: NodeParam<any>[]) => this;
 }
-export interface TableClause<T> {
-    table: (...args: NodeParam<any>[]) => T;
+export interface TableClause {
+    table: (...args: NodeParam<any>[]) => this;
 }
-export interface UsingClause<T> {
-    using: (...args: NodeParam<any>[]) => T;
+export interface UsingClause {
+    using: (...args: NodeParam<any>[]) => this;
 }
 export interface GroupByClause<T> {
-    groupBy: (column: string, ...moreColumns: string[]) => T;
+    groupBy: (column: string, ...moreColumns: string[]) => this;
     having: ConditionFunction<T>;
 }
 export {};

@@ -7,11 +7,11 @@ import {withAsMixin} from './with';
 import {NodeParam, Builder, Cloneable} from '../lib/node-interfaces';
 
 type WithTableUsingReturningClause =
-    TableClause<DeleteBuilder>
-    & UsingClause<DeleteBuilder>
-    & ReturningClause<DeleteBuilder>;
+    TableClause
+    & UsingClause
+    & ReturningClause;
 
-export interface DeleteBuilder extends WithTableUsingReturningClause, Builder, Cloneable<DeleteBuilder> {
+export interface DeleteBuilder extends WithTableUsingReturningClause, Builder, Cloneable {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<DeleteBuilder> & DeleteBuilder;
 
     from(...args): DeleteBuilder;
@@ -37,7 +37,7 @@ const proto = Object.assign({
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin<DeleteBuilder>(), clauseMixin<DeleteBuilder>('table', 'using', 'returning'));
+}, withAsMixin(), clauseMixin<DeleteBuilder>('table', 'using', 'returning'));
 
 export const del = (tableName: string): DeleteBuilder => {
     const nodes = {

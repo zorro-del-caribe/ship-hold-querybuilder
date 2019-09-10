@@ -7,19 +7,19 @@ export declare const enum SortDirection {
     ASC = "ASC",
     DESC = "DESC"
 }
-interface FromWithClauseGroupBy<T> extends FromClause<T>, WithClause<T>, GroupByClause<T> {
+interface FromWithClauseGroupBy extends FromClause, WithClause, GroupByClause<SelectBuilder> {
 }
-export interface SelectBuilder extends Builder, FromWithClauseGroupBy<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
-    join(table: SelectLikeExpression): SelectBuilder;
-    leftJoin(table: SelectLikeExpression): SelectBuilder;
-    rightJoin(table: SelectLikeExpression): SelectBuilder;
-    fullJoin(table: SelectLikeExpression): SelectBuilder;
+export interface SelectBuilder extends Builder, FromWithClauseGroupBy, WithClause, Cloneable {
+    join(table: SelectLikeExpression): this;
+    leftJoin(table: SelectLikeExpression): this;
+    rightJoin(table: SelectLikeExpression): this;
+    fullJoin(table: SelectLikeExpression): this;
     on: ConditionFunction<SelectBuilder>;
-    orderBy(column: string, direction?: SortDirection): SelectBuilder;
-    limit(limit: number, offset?: number): SelectBuilder;
-    noop(): SelectBuilder;
+    orderBy(column: string, direction?: SortDirection): this;
+    limit(limit: number, offset?: number): this;
+    noop(): this;
     where: ConditionFunction<SelectBuilder>;
-    select(...params: NodeParam<any>[]): SelectBuilder;
+    select(...params: NodeParam<any>[]): this;
 }
 export declare const select: (...args: SelectLikeExpression[]) => SelectBuilder;
 export {};

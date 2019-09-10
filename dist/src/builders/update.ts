@@ -6,7 +6,7 @@ import {ConditionsBuilder, SQLComparisonOperator} from './conditions';
 import {withAsMixin} from './with';
 import {Builder, NodeParam} from '../lib/node-interfaces';
 
-type WithReturningFromTable = IntoClause<UpdateBuilder> & ReturningClause<UpdateBuilder>;
+type WithReturningFromTable = IntoClause & ReturningClause;
 
 export interface UpdateBuilder extends WithReturningFromTable, Builder {
     where(leftOperand: NodeParam<any>, operator?: SQLComparisonOperator, rightOperand ?: NodeParam<any>): ConditionsBuilder<UpdateBuilder> & UpdateBuilder;
@@ -42,7 +42,7 @@ const proto = Object.assign({
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin<UpdateBuilder>(), clauseMixin<UpdateBuilder>('returning', 'from', 'table'));
+}, withAsMixin(), clauseMixin<UpdateBuilder>('returning', 'from', 'table'));
 
 export const update = (tableName: string): UpdateBuilder => {
     const nodes = {

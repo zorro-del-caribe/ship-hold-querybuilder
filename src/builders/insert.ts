@@ -1,12 +1,12 @@
-import {compositeNode, identityNode, valueNode, pointerNode} from '../lib/nodes';
+import {compositeNode, identityNode, pointerNode, valueNode} from '../lib/nodes';
 import {eventuallyAddComposite, fluentMethod} from '../lib/util';
 import {clauseMixin, IntoClause, nodeSymbol, ReturningClause} from './clause';
 import {withAsMixin} from './with';
 import {Builder, Cloneable} from '../lib/node-interfaces';
 
-type WithIntoFieldReturningClause = IntoClause<InsertBuilder> & ReturningClause<InsertBuilder>;
+type WithIntoFieldReturningClause = IntoClause & ReturningClause;
 
-export interface InsertBuilder extends WithIntoFieldReturningClause, Cloneable<InsertBuilder>, Builder {
+export interface InsertBuilder extends WithIntoFieldReturningClause, Cloneable, Builder {
     readonly fields: string[];
     values: (values: any[]) => InsertBuilder;
 }
@@ -42,7 +42,7 @@ const proto = Object.assign({
         add(returning, 'returning');
         return queryNode.build(params, offset);
     }
-}, withAsMixin<InsertBuilder>(), clauseMixin<InsertBuilder>('into', 'returning'));
+}, withAsMixin(), clauseMixin<InsertBuilder>('into', 'returning'));
 
 type itemOrColumnDefinition = object | string;
 

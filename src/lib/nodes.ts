@@ -76,7 +76,7 @@ const pointerNodeProto = Object.assign({
 }, mapIdentityClone);
 
 const expressionNodeProto = {
-    build(this: SQLNode<Buildable & Cloneable<Buildable>>, params, offset) {
+    build(this: SQLNode<Buildable & Cloneable>, params, offset) {
         const {node} = this;
         const {text, values} = node.value.build(params, offset);
         const fullText = node.as ? [`(${text})`, 'AS', wrap(node.as)].join(' ') : `(${text})`;

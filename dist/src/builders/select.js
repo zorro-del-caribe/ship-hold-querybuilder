@@ -1,6 +1,6 @@
-import { compositeNode, valueNode, identityNode, pointerNode, } from '../lib/nodes';
+import { compositeNode, identityNode, pointerNode, valueNode, } from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
-import { fluentMethod, eventuallyAddComposite, selectLikeExpression } from '../lib/util';
+import { eventuallyAddComposite, fluentMethod, selectLikeExpression } from '../lib/util';
 import { clauseMixin, nodeSymbol } from './clause';
 import where from './where';
 import { withAsMixin } from './with';

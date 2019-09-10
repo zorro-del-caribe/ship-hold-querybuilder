@@ -1,16 +1,6 @@
-import {
-    compositeNode,
-    valueNode,
-    identityNode,
-    pointerNode, functionNode,
-} from '../lib/nodes';
+import {compositeNode, identityNode, pointerNode, valueNode,} from '../lib/nodes';
 import proxy from '../lib/proxy-condition';
-import {
-    fluentMethod,
-    eventuallyAddComposite,
-    SelectLikeExpression,
-    selectLikeExpression
-} from '../lib/util';
+import {eventuallyAddComposite, fluentMethod, SelectLikeExpression, selectLikeExpression} from '../lib/util';
 import {clauseMixin, FromClause, GroupByClause, nodeSymbol} from './clause';
 import where from './where';
 import {ConditionFunction, SQLComparisonOperator} from './conditions';
@@ -29,30 +19,30 @@ export const enum SortDirection {
     DESC = 'DESC'
 }
 
-interface FromWithClauseGroupBy<T> extends FromClause<T>, WithClause<T>, GroupByClause<T> {
+interface FromWithClauseGroupBy extends FromClause, WithClause, GroupByClause<SelectBuilder> {
 
 }
 
-export interface SelectBuilder extends Builder, FromWithClauseGroupBy<SelectBuilder>, WithClause<SelectBuilder>, Cloneable<SelectBuilder> {
-    join(table: SelectLikeExpression): SelectBuilder;
+export interface SelectBuilder extends Builder, FromWithClauseGroupBy, WithClause, Cloneable {
+    join(table: SelectLikeExpression): this;
 
-    leftJoin(table: SelectLikeExpression): SelectBuilder;
+    leftJoin(table: SelectLikeExpression): this;
 
-    rightJoin(table: SelectLikeExpression): SelectBuilder;
+    rightJoin(table: SelectLikeExpression): this;
 
-    fullJoin(table: SelectLikeExpression): SelectBuilder;
+    fullJoin(table: SelectLikeExpression): this;
 
     on: ConditionFunction<SelectBuilder>;
 
-    orderBy(column: string, direction?: SortDirection): SelectBuilder;
+    orderBy(column: string, direction?: SortDirection): this;
 
-    limit(limit: number, offset?: number): SelectBuilder;
+    limit(limit: number, offset?: number): this;
 
-    noop(): SelectBuilder;
+    noop(): this;
 
     where: ConditionFunction<SelectBuilder>;
 
-    select(...params: NodeParam<any>[]): SelectBuilder;
+    select(...params: NodeParam<any>[]): this;
 }
 
 const proto = Object.assign({
@@ -102,7 +92,7 @@ const proto = Object.assign({
         add(nodes.limit, 'limit');
         return queryNode.build(params, offset);
     }
-}, withAsMixin<SelectBuilder>(), clauseMixin<SelectBuilder>('from', 'select', 'groupBy'));
+}, withAsMixin(), clauseMixin<SelectBuilder>('from', 'select', 'groupBy'));
 
 export const select = (...args: SelectLikeExpression[]): SelectBuilder => {
     const nodes = {

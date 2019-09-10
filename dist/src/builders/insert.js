@@ -1,4 +1,4 @@
-import { compositeNode, identityNode, valueNode, pointerNode } from '../lib/nodes';
+import { compositeNode, identityNode, pointerNode, valueNode } from '../lib/nodes';
 import { eventuallyAddComposite, fluentMethod } from '../lib/util';
 import { clauseMixin, nodeSymbol } from './clause';
 import { withAsMixin } from './with';
