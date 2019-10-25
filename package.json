@@ -10,8 +10,7 @@
     "build:compile": "tsc",
     "build:bundle": "rollup -c ./rollup/build.js && rollup -c ./rollup/cdn.js",
     "build": "npm run build:clean && npm run build:compile && npm run build:bundle",
-    "test": "rollup -c ./rollup/test.js --output.format cjs --output.file ./test/dist/debug.js && node ./test/dist/debug.js",
-    "test:ci": "rollup -c ./rollup/test.js --output.format cjs | node | tap-set-exit"
+    "test": "pta test/*.js"
   },
   "files": [
     "dist/bundle",
@@ -35,12 +34,10 @@
   "author": "Laurent RENARD",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^1.21.2",
-    "rollup-plugin-commonjs": "^10.1.0",
+    "pta": "^0.1.0",
+    "rollup": "^1.25.2",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "tap-set-exit": "^1.1.1",
-    "typescript": "^3.6.2",
-    "zora": "^3.0.3"
+    "typescript": "^3.6.4"
   },
   "dependencies": {}
 }
